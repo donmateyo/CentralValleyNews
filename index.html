@@ -20,6 +20,301 @@
         }
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+
+        .animate-fade-in-scale {
+            animation: fadeInScale 0.5s ease-out forwards;
+        }
+
+        .news-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .news-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            padding-left: 1rem;
+            margin-left: -1rem;
+        }
+
+        .news-item:hover {
+            border-left-color: #5D5CDE;
+            background: linear-gradient(90deg, rgba(93, 92, 222, 0.05) 0%, transparent 100%);
+            transform: translateX(4px);
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weather-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            pointer-events: none;
+        }
+
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .load-more-btn {
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-more-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .load-more-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Extraordinary Enhancements */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .weather-bar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 30%, #3b82f6 70%, #2563eb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weather-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%);
+            pointer-events: none;
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        .weather-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .weather-icon.sunny {
+            color: #fbbf24 !important;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+            animation: twinkle 2s ease-in-out infinite;
+        }
+
+        .weather-icon.cloudy {
+            color: #e5e7eb !important;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .weather-icon.rainy {
+            color: #60a5fa !important;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-enhanced {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .header-enhanced {
+            background: rgba(24, 24, 24, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .news-title {
+            background: linear-gradient(45deg, #5D5CDE, #10b981, #3b82f6);
+            background-size: 200% 200%;
+            animation: shimmer 3s ease-in-out infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sparkle {
+            position: relative;
+        }
+
+        .sparkle::before {
+            content: '✨';
+            position: absolute;
+            right: -25px;
+            top: -5px;
+            font-size: 12px;
+            animation: twinkle 2s ease-in-out infinite alternate;
+        }
+
+        .refresh-enhanced {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border: none;
+            box-shadow: 0 4px 15px rgba(93, 92, 222, 0.3);
+        }
+
+        .refresh-enhanced:hover {
+            box-shadow: 0 6px 20px rgba(93, 92, 222, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle-enhanced {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white !important;
+            border: none;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .theme-toggle-enhanced:hover {
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #5D5CDE, transparent);
+            border-radius: 50%;
+            animation: particleFloat 15s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .enhanced-border {
+            border: 2px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(45deg, #10b981, #3b82f6) border-box;
+        }
+
+        .dark .enhanced-border {
+            background: linear-gradient(#2A2A2A, #2A2A2A) padding-box,
+                        linear-gradient(45deg, #10b981, #3b82f6) border-box;
+        }
+    </style>
 </head>
 <body class="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen transition-colors duration-300">
     <!-- Loading Spinner -->
@@ -30,28 +325,41 @@
         </div>
     </div>
 
+    <!-- Floating Particles Background -->
+    <div class="floating-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    </div>
+
     <!-- Header -->
-    <header class="bg-white dark:bg-dark-surface shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+    <header class="header-enhanced sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center space-x-3">
-                    <i class="fas fa-newspaper text-primary text-2xl"></i>
+                    <i class="fas fa-newspaper text-primary text-2xl animate-pulse"></i>
                     <div>
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Central Valley News</h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Fresno & Tulare County Coverage</p>
+                        <h1 class="news-title text-xl font-bold sparkle">Central Valley News</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">by Matthew Flores</p>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-4">
                     <!-- Refresh Button -->
-                    <button id="refresh-btn" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Refresh News">
-                        <i class="fas fa-sync-alt text-gray-600 dark:text-gray-400"></i>
+                    <button id="refresh-btn" class="refresh-enhanced p-2 rounded-lg transition-all duration-200" title="Refresh News">
+                        <i class="fas fa-sync-alt text-white"></i>
                     </button>
 
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Toggle Theme">
-                        <i class="fas fa-moon dark:hidden text-gray-600"></i>
-                        <i class="fas fa-sun hidden dark:inline text-gray-400"></i>
+                    <button id="theme-toggle" class="theme-toggle-enhanced p-2 rounded-lg transition-all duration-200" title="Toggle Theme">
+                        <i class="fas fa-moon dark:hidden text-white"></i>
+                        <i class="fas fa-sun hidden dark:inline text-white"></i>
                     </button>
                 </div>
             </div>
@@ -60,29 +368,35 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <!-- Weather Bar -->
-        <div class="bg-gradient-to-r from-green-500 to-blue-600 dark:from-green-600 dark:to-blue-700 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between">
+        <div class="weather-bar rounded-xl shadow-xl p-6 text-white relative animate-fade-in-scale">
+            <div class="flex items-center justify-between relative z-10">
                 <!-- Tulare Weather Details -->
                 <div class="text-left">
-                    <h3 class="text-lg font-semibold mb-1">Tulare</h3>
+                    <h3 class="text-lg font-semibold mb-1 flex items-center">
+                        <span class="mr-2">Tulare</span>
+                        <i class="fas fa-seedling text-sm opacity-60"></i>
+                    </h3>
                     <div class="flex items-center space-x-3">
-                        <i id="tulare-weather-icon" class="fas fa-cloud text-3xl text-blue-100"></i>
+                        <i id="tulare-weather-icon" class="weather-icon fas fa-cloud text-3xl text-white drop-shadow-lg"></i>
                         <div>
-                            <div class="text-2xl font-bold" id="tulare-temp">--°F</div>
-                            <div class="text-sm text-blue-100" id="tulare-condition">Loading...</div>
+                            <div class="text-2xl font-bold drop-shadow-sm" id="tulare-temp">--°F</div>
+                            <div class="text-sm opacity-90" id="tulare-condition">Loading...</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Fresno Weather Details -->
                 <div class="text-right">
-                    <h3 class="text-lg font-semibold mb-1">Fresno</h3>
+                    <h3 class="text-lg font-semibold mb-1 flex items-center justify-end">
+                        <i class="fas fa-city text-sm opacity-60 mr-2"></i>
+                        <span>Fresno</span>
+                    </h3>
                     <div class="flex items-center justify-end space-x-3">
                         <div>
-                            <div class="text-2xl font-bold" id="fresno-temp">--°F</div>
-                            <div class="text-sm text-blue-100" id="fresno-condition">Loading...</div>
+                            <div class="text-2xl font-bold drop-shadow-sm" id="fresno-temp">--°F</div>
+                            <div class="text-sm opacity-90" id="fresno-condition">Loading...</div>
                         </div>
-                        <i id="fresno-weather-icon" class="fas fa-cloud text-3xl text-blue-100"></i>
+                        <i id="fresno-weather-icon" class="weather-icon fas fa-cloud text-3xl text-white drop-shadow-lg"></i>
                     </div>
                 </div>
             </div>
@@ -91,40 +405,42 @@
         <!-- County News Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Tulare County Card -->
-            <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6">
-                    <h2 class="text-2xl font-bold text-white flex items-center">
-                        <i class="fas fa-seedling mr-3"></i>
+            <div class="news-card bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in-scale">
+                <div class="bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 p-6 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent shimmer-effect"></div>
+                    <h2 class="text-2xl font-bold text-white flex items-center relative z-10">
+                        <i class="fas fa-seedling mr-3 text-green-100"></i>
                         Tulare County News
                     </h2>
-                    <p class="text-green-100 mt-1">Visalia, Porterville & surrounding areas</p>
+                    <p class="text-green-100 mt-1 relative z-10">Visalia, Porterville & surrounding areas</p>
                 </div>
                 <div id="tulare-news" class="p-6">
                     <div class="text-center py-8">
-                        <div class="animate-pulse">
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-3"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
+                        <div class="animate-pulse space-y-3">
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-3/4 mx-auto shimmer-effect"></div>
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-1/2 mx-auto shimmer-effect"></div>
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-2/3 mx-auto shimmer-effect"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Fresno County Card -->
-            <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
-                    <h2 class="text-2xl font-bold text-white flex items-center">
-                        <i class="fas fa-city mr-3"></i>
+            <div class="news-card bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in-scale">
+                <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-6 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent shimmer-effect"></div>
+                    <h2 class="text-2xl font-bold text-white flex items-center relative z-10">
+                        <i class="fas fa-city mr-3 text-blue-100"></i>
                         Fresno County News
                     </h2>
-                    <p class="text-blue-100 mt-1">Fresno, Clovis & surrounding areas</p>
+                    <p class="text-blue-100 mt-1 relative z-10">Fresno, Clovis & surrounding areas</p>
                 </div>
                 <div id="fresno-news" class="p-6">
                     <div class="text-center py-8">
-                        <div class="animate-pulse">
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-3"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
+                        <div class="animate-pulse space-y-3">
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-3/4 mx-auto shimmer-effect"></div>
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-1/2 mx-auto shimmer-effect"></div>
+                            <div class="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg w-2/3 mx-auto shimmer-effect"></div>
                         </div>
                     </div>
                 </div>
@@ -154,6 +470,7 @@
                 "https://news.google.com/rss/search?q=Clovis%20California%20news&hl=en-US&gl=US&ceid=US:en"
             ],
             HOURS_RECENT: 72,
+            INITIAL_HEADLINES: 5,
             MAX_HEADLINES: 15,
             WEATHER_API_BASE: "https://api.open-meteo.com/v1/forecast",
             // Coordinates: Tulare (36.2077, -119.3473), Fresno (36.7378, -119.7871)
@@ -168,7 +485,9 @@
             tulareWeather: null,
             fresnoWeather: null,
             lastUpdate: null,
-            isDarkMode: false
+            isDarkMode: false,
+            tulareVisibleCount: CONFIG.INITIAL_HEADLINES,
+            fresnoVisibleCount: CONFIG.INITIAL_HEADLINES
         };
 
         // Dark mode initialization
@@ -340,13 +659,39 @@
             if (state.tulareWeather) {
                 document.getElementById('tulare-temp').textContent = `${state.tulareWeather.temperature}°F`;
                 document.getElementById('tulare-condition').textContent = state.tulareWeather.condition;
-                document.getElementById('tulare-weather-icon').className = `${state.tulareWeather.icon} text-3xl text-blue-100`;
+
+                // Dynamic weather icon styling
+                const tulareIcon = document.getElementById('tulare-weather-icon');
+                let iconClass = `weather-icon ${state.tulareWeather.icon} text-3xl text-white drop-shadow-lg`;
+
+                if (state.tulareWeather.icon.includes('fa-sun')) {
+                    iconClass += ' sunny';
+                } else if (state.tulareWeather.icon.includes('fa-cloud')) {
+                    iconClass += ' cloudy';
+                } else if (state.tulareWeather.icon.includes('rain')) {
+                    iconClass += ' rainy';
+                }
+
+                tulareIcon.className = iconClass;
             }
 
             if (state.fresnoWeather) {
                 document.getElementById('fresno-temp').textContent = `${state.fresnoWeather.temperature}°F`;
                 document.getElementById('fresno-condition').textContent = state.fresnoWeather.condition;
-                document.getElementById('fresno-weather-icon').className = `${state.fresnoWeather.icon} text-3xl text-blue-100`;
+
+                // Dynamic weather icon styling
+                const fresnoIcon = document.getElementById('fresno-weather-icon');
+                let iconClass = `weather-icon ${state.fresnoWeather.icon} text-3xl text-white drop-shadow-lg`;
+
+                if (state.fresnoWeather.icon.includes('fa-sun')) {
+                    iconClass += ' sunny';
+                } else if (state.fresnoWeather.icon.includes('fa-cloud')) {
+                    iconClass += ' cloudy';
+                } else if (state.fresnoWeather.icon.includes('rain')) {
+                    iconClass += ' rainy';
+                }
+
+                fresnoIcon.className = iconClass;
             }
         }
 
@@ -396,6 +741,10 @@
 
                 state.lastUpdate = new Date();
 
+                // Reset visible counts when new data is loaded
+                state.tulareVisibleCount = CONFIG.INITIAL_HEADLINES;
+                state.fresnoVisibleCount = CONFIG.INITIAL_HEADLINES;
+
                 console.log('News fetched successfully:', {
                     tulare: state.tulareNews.length,
                     fresno: state.fresnoNews.length
@@ -430,7 +779,7 @@
             updateFresnoNews();
         }
 
-        function renderNewsSection(articles, containerId, emptyMessage, emptyIcon) {
+        function renderNewsSection(articles, containerId, emptyMessage, emptyIcon, visibleCount, county) {
             const container = document.getElementById(containerId);
 
             if (articles.length === 0) {
@@ -443,9 +792,12 @@
                 return;
             }
 
-            container.innerHTML = articles.map((article, index) => `
-                <article class="${index > 0 ? 'border-t border-gray-200 dark:border-gray-700 pt-4 mt-4' : ''} mb-4">
-                    <div class="group cursor-pointer" onclick="window.open('${article.link}', '_blank')">
+            const visibleArticles = articles.slice(0, visibleCount);
+            const hasMoreArticles = articles.length > visibleCount;
+
+            const articlesHTML = visibleArticles.map((article, index) => `
+                <article class="${index > 0 ? 'border-t border-gray-200 dark:border-gray-700 pt-4 mt-4' : ''} mb-4 animate-slide-in">
+                    <div class="news-item group cursor-pointer rounded-lg p-3 -m-3" onclick="window.open('${article.link}', '_blank')">
                         <h3 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary transition-colors duration-200 mb-2 leading-tight">
                             ${article.title}
                         </h3>
@@ -459,7 +811,7 @@
                                 <i class="fas fa-clock mr-1"></i>
                                 ${article.hoursAgo === 0 ? 'Just now' : article.hoursAgo < 24 ? `${article.hoursAgo}h ago` : `${Math.floor(article.hoursAgo / 24)}d ago`}
                             </span>
-                            <span class="flex items-center">
+                            <span class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <i class="fas fa-external-link-alt mr-1"></i>
                                 Read more
                             </span>
@@ -467,6 +819,28 @@
                     </div>
                 </article>
             `).join('');
+
+            const loadMoreButton = hasMoreArticles ? `
+                <div class="text-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <button onclick="loadMore${county}News()" class="load-more-btn inline-flex items-center px-6 py-3 text-sm font-medium text-white rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Load more headlines (${articles.length - visibleCount} remaining)
+                    </button>
+                </div>
+            ` : '';
+
+            container.innerHTML = articlesHTML + loadMoreButton;
+        }
+
+        // Load more functions for each county
+        function loadMoreTulareNews() {
+            state.tulareVisibleCount = CONFIG.MAX_HEADLINES;
+            updateTulareNews();
+        }
+
+        function loadMoreFresnoNews() {
+            state.fresnoVisibleCount = CONFIG.MAX_HEADLINES;
+            updateFresnoNews();
         }
 
         function updateTulareNews() {
@@ -474,7 +848,9 @@
                 state.tulareNews, 
                 'tulare-news', 
                 'No Tulare County news available at the moment.',
-                'fas fa-seedling'
+                'fas fa-seedling',
+                state.tulareVisibleCount,
+                'Tulare'
             );
         }
 
@@ -483,7 +859,9 @@
                 state.fresnoNews, 
                 'fresno-news', 
                 'No Fresno County news available at the moment.',
-                'fas fa-city'
+                'fas fa-city',
+                state.fresnoVisibleCount,
+                'Fresno'
             );
         }
 
