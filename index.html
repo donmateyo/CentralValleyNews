@@ -2,11 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Central Valley News Dashboard</title>
+    <meta name="description" content="Real-time news and weather for Central Valley, California" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -15,947 +13,1160 @@
         theme: {
           extend: {
             colors: {
-              primary: "#5D5CDE",
-              "dark-bg": "#181818",
-              "dark-surface": "#2A2A2A",
+              primary: "#4A5568",
+              "primary-dark": "#2D3748",
+              accent: "#3182CE",
+              "dark-bg": "#1A202C",
+              "dark-surface": "#2D3748",
+              "dark-surface-elevated": "#4A5568",
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.3s ease-out',
+              'slide-up': 'slideUp 0.4s ease-out',
+              'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              pulseSoft: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0.8' },
+              },
             },
           },
         },
       };
     </script>
 
-    <!-- Inter font for more professional typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
 
     <style>
-      /* Typography + base polish */
-      html {
+      * {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
+
       body {
-        font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
-          "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
-          "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
       }
 
-      /* Subtle enter animations */
-      @keyframes slideInUp {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @keyframes fadeInScale {
-        from {
-          opacity: 0;
-          transform: scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      .animate-slide-in {
-        animation: slideInUp 0.4s ease-out forwards;
-      }
-      .animate-fade-in-scale {
-        animation: fadeInScale 0.35s ease-out forwards;
+      /* Smooth transitions */
+      .transition-smooth {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Card polish */
-      .news-card {
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      /* Card hover effects */
+      .card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
-      .news-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      .card-hover:hover {
+        transform: translateY(-2px);
       }
 
-      /* Make list items subtle and accessible */
-      .news-item a {
-        transition: background-color 0.2s ease, color 0.2s ease,
-          transform 0.2s ease;
+      /* News item hover */
+      .news-link {
+        position: relative;
+        transition: all 0.15s ease;
         border-left: 2px solid transparent;
       }
-      .news-item a:hover,
-      .news-item a:focus-visible {
-        background: rgba(93, 92, 222, 0.06);
-        border-left-color: #5d5cde;
+      .news-link:hover {
+        background-color: rgba(74, 85, 104, 0.05);
+        border-left-color: #3182CE;
+      }
+      .dark .news-link:hover {
+        background-color: rgba(74, 85, 104, 0.1);
       }
 
-      /* Tone down flashy effects */
-      .news-title {
-        animation: none !important;
-        -webkit-text-fill-color: inherit;
-        background: none;
-        color: inherit;
-      }
-      .sparkle::before {
-        display: none;
-      }
-      .floating-particles {
-        display: none !important;
-      }
-
-      /* Buttons */
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-        transition: transform 0.15s ease, box-shadow 0.2s ease,
-          background-color 0.2s ease;
-      }
-      .btn:hover {
-        transform: translateY(-1px);
-      }
-
-      /* Loading skeletons */
+      /* Loading skeleton */
       .skeleton {
         background: linear-gradient(
           90deg,
           rgba(0, 0, 0, 0.06) 25%,
-          rgba(0, 0, 0, 0.12) 37%,
-          rgba(0, 0, 0, 0.06) 63%
+          rgba(0, 0, 0, 0.12) 50%,
+          rgba(0, 0, 0, 0.06) 75%
         );
-        background-size: 400% 100%;
-        animation: shimmer 1.4s ease infinite;
+        background-size: 200% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
       }
       .dark .skeleton {
         background: linear-gradient(
           90deg,
-          rgba(255, 255, 255, 0.06) 25%,
-          rgba(255, 255, 255, 0.12) 37%,
-          rgba(255, 255, 255, 0.06) 63%
+          rgba(255, 255, 255, 0.05) 25%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0.05) 75%
         );
       }
       @keyframes shimmer {
-        0% {
-          background-position: 100% 0;
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+
+      /* Toast animations */
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
         }
-        100% {
-          background-position: -100% 0;
+        to {
+          transform: translateX(0);
+          opacity: 1;
         }
+      }
+      .toast-enter {
+        animation: slideInRight 0.3s ease-out;
+      }
+
+      /* Button ripple effect */
+      .btn-ripple {
+        position: relative;
+        overflow: hidden;
+      }
+      .btn-ripple::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      .btn-ripple:active::after {
+        width: 300px;
+        height: 300px;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4a5568;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #718096;
+      }
+
+      /* Tab styling */
+      .tab-active {
+        border-bottom: 2px solid #3182CE;
+        color: #3182CE;
       }
     </style>
   </head>
 
-  <body
-    class="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen transition-colors duration-300"
-  >
-    <!-- Loading Spinner -->
+  <body class="bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen transition-colors duration-300">
+
+    <!-- Loading Screen -->
     <div
       id="loading"
-      class="fixed inset-0 bg-white dark:bg-dark-bg flex items-center justify-center z-50"
+      class="fixed inset-0 bg-white dark:bg-dark-bg flex items-center justify-center z-50 transition-opacity duration-300"
+      aria-live="polite"
+      aria-busy="true"
     >
       <div class="text-center">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"
-        ></div>
-        <p class="text-gray-600 dark:text-gray-400">
-          Loading Central Valley News...
+        <div class="relative">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700 border-t-accent mx-auto"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <i class="fas fa-newspaper text-accent text-xl animate-pulse-soft"></i>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-gray-600 dark:text-gray-400 font-medium">
+          Loading Central Valley News
         </p>
       </div>
     </div>
 
     <!-- Header -->
-    <header
-      class="header-enhanced sticky top-0 z-40 bg-white/90 dark:bg-dark-bg/90 backdrop-blur border-b border-gray-200 dark:border-gray-800"
-    >
+    <header class="sticky top-0 z-40 bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex items-center justify-between h-14">
+          <!-- Logo & Title -->
           <div class="flex items-center space-x-3">
-            <i class="fas fa-newspaper text-primary text-2xl"></i>
+            <div class="bg-accent p-1.5 rounded-md shadow-sm">
+              <i class="fas fa-newspaper text-white text-lg"></i>
+            </div>
             <div>
-              <h1 class="text-xl font-semibold leading-tight">
+              <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Central Valley News
               </h1>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                by Matthew Flores
+                Real-time updates • by Matthew Flores
               </p>
             </div>
           </div>
 
-          <div class="flex items-center space-x-4">
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <!-- Last Updated -->
             <div
               id="last-updated"
-              class="hidden sm:flex items-center text-xs text-gray-500 dark:text-gray-400"
+              class="hidden sm:flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-dark-surface-elevated px-2.5 py-1 rounded-full"
+              role="status"
               aria-live="polite"
             >
-              <i class="far fa-clock mr-1"></i>
+              <i class="far fa-clock text-accent text-xs"></i>
               <span id="last-updated-value">Just now</span>
             </div>
 
             <!-- Refresh Button -->
             <button
               id="refresh-btn"
-              class="btn bg-primary text-white shadow-sm hover:shadow-md"
+              class="btn-ripple p-2 bg-accent hover:bg-blue-600 text-white rounded-md shadow-sm hover:shadow transition-smooth disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-accent focus:ring-offset-2"
               title="Refresh News"
+              aria-label="Refresh news feed"
             >
-              <i class="fas fa-sync-alt"></i>
+              <i class="fas fa-sync-alt text-sm" id="refresh-icon"></i>
             </button>
 
             <!-- Theme Toggle -->
             <button
               id="theme-toggle"
-              class="btn bg-amber-500 text-white shadow-sm hover:shadow-md"
+              class="btn-ripple p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md shadow-sm hover:shadow transition-smooth focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               title="Toggle Theme"
+              aria-label="Toggle dark mode"
             >
-              <i class="fas fa-moon dark:hidden"></i>
-              <i class="fas fa-sun hidden dark:inline"></i>
+              <i class="fas fa-moon dark:hidden text-xs"></i>
+              <i class="fas fa-sun hidden dark:inline text-xs"></i>
             </button>
           </div>
         </div>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-      <!-- Weather Bar -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <!-- Weather Section -->
       <section
-        class="rounded-xl shadow-sm p-5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface animate-fade-in-scale"
-        aria-label="Weather"
+        class="bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 animate-fade-in"
+        aria-label="Weather Information"
       >
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="fas fa-cloud-sun text-accent"></i>
+            Current Weather
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
           <!-- Visalia Weather -->
-          <div class="text-left">
-            <h3
-              class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center"
-            >
-              <span class="mr-2">Visalia</span>
-              <i class="fas fa-seedling text-xs opacity-60"></i>
-            </h3>
-            <div class="flex items-center space-x-3">
-              <i
-                id="tulare-weather-icon"
-                class="fas fa-cloud text-2xl text-gray-400"
-                aria-hidden="true"
-              ></i>
-              <div>
-                <div
-                  class="text-xl font-semibold"
-                  id="tulare-temp"
-                >
-                  --°F
-                </div>
-                <div
-                  class="text-xs text-gray-500 dark:text-gray-400"
-                  id="tulare-condition"
-                >
-                  Loading...
-                </div>
+          <div class="bg-gray-50 dark:bg-dark-surface-elevated rounded-md p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-medium text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                <i class="fas fa-seedling text-green-500 text-xs"></i>
+                Visalia
+              </h3>
+              <i id="tulare-weather-icon" class="fas fa-cloud text-xl text-gray-400" aria-hidden="true"></i>
+            </div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="tulare-temp" class="text-2xl font-bold text-gray-900 dark:text-white">--°</span>
+              <span id="tulare-condition" class="text-xs text-gray-600 dark:text-gray-400">Loading...</span>
+            </div>
+            <div id="tulare-details" class="mt-2 flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <div class="flex items-center gap-1">
+                <i class="fas fa-tint text-xs"></i>
+                <span id="tulare-humidity">--%</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="fas fa-wind text-xs"></i>
+                <span id="tulare-wind">-- mph</span>
               </div>
             </div>
           </div>
 
           <!-- Fresno Weather -->
-          <div class="text-right">
-            <h3
-              class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center justify-end"
-            >
-              <i
-                class="fas fa-city text-xs opacity-60 mr-2"
-                aria-hidden="true"
-              ></i>
-              <span>Fresno</span>
-            </h3>
-            <div class="flex items-center justify-end space-x-3">
-              <div>
-                <div
-                  class="text-xl font-semibold"
-                  id="fresno-temp"
-                >
-                  --°F
-                </div>
-                <div
-                  class="text-xs text-gray-500 dark:text-gray-400"
-                  id="fresno-condition"
-                >
-                  Loading...
-                </div>
-              </div>
-              <i
-                id="fresno-weather-icon"
-                class="fas fa-cloud text-2xl text-gray-400"
-                aria-hidden="true"
-              ></i>
+          <div class="bg-gray-50 dark:bg-dark-surface-elevated rounded-md p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-medium text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                <i class="fas fa-city text-blue-500 text-xs"></i>
+                Fresno
+              </h3>
+              <i id="fresno-weather-icon" class="fas fa-cloud text-xl text-gray-400" aria-hidden="true"></i>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- County News Cards -->
-      <section
-        class="grid grid-cols-1 lg:grid-cols-2 gap-8"
-        aria-label="County news"
-      >
-        <!-- Tulare County Card -->
-        <div
-          class="news-card bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-        >
-          <div
-            class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
-          >
-            <div class="flex items-center">
-              <i
-                class="fas fa-seedling text-green-600 dark:text-green-400 mr-3"
-                aria-hidden="true"
-              ></i>
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Tulare County News
-                </h2>
-                <p
-                  class="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Visalia, Porterville & surrounding areas
-                </p>
-              </div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="fresno-temp" class="text-2xl font-bold text-gray-900 dark:text-white">--°</span>
+              <span id="fresno-condition" class="text-xs text-gray-600 dark:text-gray-400">Loading...</span>
             </div>
-          </div>
-
-          <div id="tulare-news" class="p-5">
-            <div class="text-center py-8">
-              <div class="space-y-3 max-w-md mx-auto">
-                <div class="h-4 rounded skeleton"></div>
-                <div class="h-4 w-2/3 rounded skeleton"></div>
-                <div class="h-4 w-3/4 rounded skeleton"></div>
+            <div id="fresno-details" class="mt-2 flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <div class="flex items-center gap-1">
+                <i class="fas fa-tint text-xs"></i>
+                <span id="fresno-humidity">--%</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Fresno County Card -->
-        <div
-          class="news-card bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-        >
-          <div
-            class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
-          >
-            <div class="flex items-center">
-              <i
-                class="fas fa-city text-blue-600 dark:text-blue-400 mr-3"
-                aria-hidden="true"
-              ></i>
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Fresno County News
-                </h2>
-                <p
-                  class="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Fresno, Clovis & surrounding areas
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div id="fresno-news" class="p-5">
-            <div class="text-center py-8">
-              <div class="space-y-3 max-w-md mx-auto">
-                <div class="h-4 rounded skeleton"></div>
-                <div class="h-4 w-2/3 rounded skeleton"></div>
-                <div class="h-4 w-3/4 rounded skeleton"></div>
+              <div class="flex items-center gap-1">
+                <i class="fas fa-wind text-xs"></i>
+                <span id="fresno-wind">-- mph</span>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      <!-- News Section with Tabs -->
+      <section class="bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-slide-up" aria-label="News Articles">
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 dark:border-gray-700">
+          <button
+            id="tulare-tab"
+            class="flex-1 py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-smooth tab-active"
+            onclick="switchTab('tulare')"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <i class="fas fa-seedling text-green-500"></i>
+              <span>Tulare County</span>
+              <span id="tulare-count" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full text-xs">0</span>
+            </div>
+          </button>
+          <button
+            id="fresno-tab"
+            class="flex-1 py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-smooth"
+            onclick="switchTab('fresno')"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <i class="fas fa-city text-blue-500"></i>
+              <span>Fresno County</span>
+              <span id="fresno-count" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full text-xs">0</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-4">
+          <!-- Tulare County News -->
+          <div id="tulare-content" class="tab-content">
+            <div id="tulare-news" class="space-y-3">
+              <!-- Loading skeleton -->
+              <div class="skeleton h-16 rounded-md"></div>
+              <div class="skeleton h-16 rounded-md"></div>
+              <div class="skeleton h-16 rounded-md"></div>
+            </div>
+          </div>
+
+          <!-- Fresno County News -->
+          <div id="fresno-content" class="tab-content hidden">
+            <div id="fresno-news" class="space-y-3">
+              <!-- Loading skeleton -->
+              <div class="skeleton h-16 rounded-md"></div>
+              <div class="skeleton h-16 rounded-md"></div>
+              <div class="skeleton h-16 rounded-md"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="text-center py-4 text-xs text-gray-500 dark:text-gray-400">
+        <p>
+          Data aggregated from Google News RSS feeds • Weather from Open-Meteo
+        </p>
+        <p class="mt-1">
+          <i class="fas fa-heart text-red-500"></i> Made with care for Central Valley residents
+        </p>
+      </footer>
+
     </main>
 
-    <!-- Error Toast -->
-    <div
-      id="error-toast"
-      class="hidden fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
-      role="alert"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-triangle mr-2"></i>
-        <span id="error-message">An error occurred</span>
-      </div>
-    </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2 max-w-sm" aria-live="polite"></div>
 
     <script>
-      // Configuration (unchanged)
+      // ============================================
+      // CONFIGURATION & CONSTANTS
+      // ============================================
+
       const CONFIG = {
-        TULARE_FEEDS: [
-          "https://news.google.com/rss/search?q=Visalia%20CA%20news&hl=en-US&gl=US&ceid=US:en",
-          "https://news.google.com/rss/search?q=Tulare%20County%20news&hl=en-US&gl=US&ceid=US:en",
-          "https://news.google.com/rss/search?q=Porterville%20CA%20news&hl=en-US&gl=US&ceid=US:en",
-        ],
-        FRESNO_FEEDS: [
-          "https://news.google.com/rss/search?q=Fresno%20CA%20news&hl=en-US&gl=US&ceid=US:en",
-          "https://news.google.com/rss/search?q=Fresno%20County%20California&hl=en-US&gl=US&ceid=US:en",
-          "https://news.google.com/rss/search?q=Clovis%20California%20news&hl=en-US&gl=US&ceid=US:en",
-        ],
+        // RSS Feed URLs
+        FEEDS: {
+          tulare: [
+            "https://news.google.com/rss/search?q=Visalia%20CA%20news&hl=en-US&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=Tulare%20County%20news&hl=en-US&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=Porterville%20CA%20news&hl=en-US&gl=US&ceid=US:en",
+          ],
+          fresno: [
+            "https://news.google.com/rss/search?q=Fresno%20CA%20news&hl=en-US&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=Fresno%20County%20California&hl=en-US&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=Clovis%20California%20news&hl=en-US&gl=US&ceid=US:en",
+          ],
+        },
+
+        // Weather API
+        WEATHER: {
+          apiBase: "https://api.open-meteo.com/v1/forecast",
+          coords: {
+            tulare: { lat: 36.3302, lon: -119.2921 },
+            fresno: { lat: 36.7378, lon: -119.7871 },
+          },
+        },
+
+        // Display settings
         HOURS_RECENT: 72,
-        INITIAL_HEADLINES: 5,
-        MAX_HEADLINES: 15,
-        WEATHER_API_BASE: "https://api.open-meteo.com/v1/forecast",
-        // Coordinates: Visalia (36.3302, -119.2921), Fresno (36.7378, -119.7871)
-        TULARE_COORDS: { lat: 36.3302, lon: -119.2921 },
-        FRESNO_COORDS: { lat: 36.7378, lon: -119.7871 },
+        INITIAL_DISPLAY: 5,
+        MAX_ARTICLES: 15,
+        FETCH_TIMEOUT: 10000,
+        CACHE_DURATION: 15 * 60 * 1000, // 15 minutes
+        AUTO_REFRESH: 15 * 60 * 1000, // 15 minutes
+        MIN_REFRESH_INTERVAL: 30 * 1000, // 30 seconds rate limit
       };
 
-      // Application State
-      let state = {
-        tulareNews: [],
-        fresnoNews: [],
-        tulareWeather: null,
-        fresnoWeather: null,
-        lastUpdate: null,
-        isDarkMode: false,
-        tulareVisibleCount: CONFIG.INITIAL_HEADLINES,
-        fresnoVisibleCount: CONFIG.INITIAL_HEADLINES,
+      // CORS Proxies (in priority order)
+      const PROXIES = [
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+      ];
+
+      // Cache keys
+      const CACHE_KEYS = {
+        tulare: "cvn_tulare_v3",
+        fresno: "cvn_fresno_v3",
+        weather: "cvn_weather_v3",
+        timestamp: "cvn_timestamp_v3",
+        theme: "cvn_theme_v3",
       };
 
-      // Dark mode initialization
-      function initializeDarkMode() {
-        if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-          document.documentElement.classList.add("dark");
-          state.isDarkMode = true;
-        }
-        window
-          .matchMedia("(prefers-color-scheme: dark)")
-          .addEventListener("change", (event) => {
-            if (event.matches) {
-              document.documentElement.classList.add("dark");
-              state.isDarkMode = true;
-            } else {
-              document.documentElement.classList.remove("dark");
-              state.isDarkMode = false;
-            }
-          });
-      }
+      // ============================================
+      // STATE MANAGEMENT
+      // ============================================
 
-      function showError(message) {
-        console.error("Error:", message);
-        const errorToast = document.getElementById("error-toast");
-        const errorMessage = document.getElementById("error-message");
-        errorMessage.textContent = message;
-        errorToast.classList.remove("hidden");
-        setTimeout(() => {
-          errorToast.classList.add("hidden");
-        }, 5000);
-      }
+      const state = {
+        news: {
+          tulare: [],
+          fresno: [],
+        },
+        weather: {
+          tulare: null,
+          fresno: null,
+        },
+        ui: {
+          tulareVisible: CONFIG.INITIAL_DISPLAY,
+          fresnoVisible: CONFIG.INITIAL_DISPLAY,
+          isDarkMode: false,
+          isRefreshing: false,
+          lastRefresh: null,
+          activeTab: "tulare",
+        },
+      };
 
-      // Fetch RSS feed with CORS proxy (unchanged)
-      async function fetchRSSFeed(url) {
+      // ============================================
+      // UTILITY FUNCTIONS
+      // ============================================
+
+      // Toast notification system
+      const Toast = {
+        show(message, type = 'info', duration = 3500) {
+          const container = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+
+          const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            warning: 'bg-yellow-500',
+            info: 'bg-gray-800 dark:bg-gray-700',
+          };
+
+          const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle',
+          };
+
+          toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg toast-enter flex items-center gap-2 min-w-[250px]`;
+          toast.innerHTML = `
+            <i class="fas ${icons[type]}"></i>
+            <span class="flex-1">${message}</span>
+            <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-80">
+              <i class="fas fa-times"></i>
+            </button>
+          `;
+
+          container.appendChild(toast);
+
+          setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+          }, duration);
+        },
+      };
+
+      // Fetch with timeout
+      async function fetchWithTimeout(url, options = {}, timeout = CONFIG.FETCH_TIMEOUT) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
         try {
-          const proxyUrl =
-            `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          const response = await fetch(proxyUrl);
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          return data.contents;
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          return response;
         } catch (error) {
-          console.error(`Failed to fetch RSS feed ${url}:`, error);
+          clearTimeout(timeoutId);
           throw error;
         }
       }
 
-      // Parse RSS feed (unchanged)
-      function parseRSSFeed(xmlText, source) {
-        try {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+      // Fetch RSS through proxies with fallback
+      async function fetchRSS(url) {
+        const errors = [];
 
-          const parseError = xmlDoc.querySelector("parsererror");
-          if (parseError) {
-            console.error("XML parsing error:", parseError.textContent);
-            return [];
+        for (const proxyFn of PROXIES) {
+          try {
+            const proxiedUrl = proxyFn(url);
+            const response = await fetchWithTimeout(proxiedUrl);
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const text = await response.text();
+            return text;
+          } catch (error) {
+            errors.push(error.message);
+            continue;
+          }
+        }
+
+        throw new Error(`All proxies failed: ${errors.join(', ')}`);
+      }
+
+      // Parse RSS/Atom feed
+      function parseRSS(xmlText) {
+        try {
+          // Clean XML
+          const cleaned = xmlText
+            .replace(/\u0000/g, '')
+            .replace(/&(?!(?:[a-zA-Z]+|#[0-9]+|#x[0-9a-fA-F]+);)/g, '&amp;');
+
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(cleaned, 'application/xml');
+
+          // Check for parse errors
+          if (doc.querySelector('parsererror')) {
+            doc = parser.parseFromString(cleaned, 'text/html');
           }
 
-          const items = xmlDoc.querySelectorAll("item");
+          // Try RSS format first
+          let items = Array.from(doc.querySelectorAll('item'));
+          let isAtom = false;
+
+          // Fallback to Atom
+          if (items.length === 0) {
+            items = Array.from(doc.querySelectorAll('entry'));
+            isAtom = true;
+          }
+
           const articles = [];
+          const now = Date.now();
 
           items.forEach((item, index) => {
             try {
-              const title = item
-                .querySelector("title")
-                ?.textContent?.trim();
-              const link = item
-                .querySelector("link")
-                ?.textContent?.trim();
-              const pubDate = item
-                .querySelector("pubDate")
-                ?.textContent?.trim();
-              const description = item
-                .querySelector("description")
-                ?.textContent?.trim();
+              // Extract title
+              const title = decodeHTML(
+                item.querySelector('title')?.textContent?.trim() || ''
+              );
 
-              if (title && link) {
-                const publishedDate = pubDate
-                  ? new Date(pubDate)
-                  : new Date();
-                const hoursAgo = Math.floor(
-                  (Date.now() - publishedDate.getTime()) /
-                    (1000 * 60 * 60)
-                );
-
-                if (hoursAgo <= CONFIG.HOURS_RECENT) {
-                  articles.push({
-                    title: title
-                      .replace(/&amp;/g, "&")
-                      .replace(/&lt;/g, "<")
-                      .replace(/&gt;/g, ">"),
-                    link,
-                    publishedDate,
-                    hoursAgo,
-                    description: description
-                      ? description
-                          .replace(/<[^>]*>/g, "")
-                          .slice(0, 120) + "..."
-                      : "",
-                    source,
-                    id: `${link}-${index}`,
-                  });
-                }
+              // Extract link
+              let link = '';
+              if (isAtom) {
+                const linkEl = item.querySelector('link[rel="alternate"]') || item.querySelector('link');
+                link = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || '';
+              } else {
+                link = item.querySelector('link')?.textContent?.trim() || 
+                       item.querySelector('guid')?.textContent?.trim() || '';
               }
-            } catch (itemError) {
-              console.warn("Error parsing RSS item:", itemError);
+
+              // Extract date
+              const dateStr = item.querySelector('pubDate, published, updated, dc\\:date')?.textContent?.trim() || '';
+              const pubDate = dateStr ? new Date(dateStr) : new Date();
+
+              if (isNaN(pubDate.getTime())) {
+                pubDate.setTime(now);
+              }
+
+              // Extract description
+              let description = decodeHTML(
+                stripHTML(
+                  item.querySelector('description, summary, content')?.textContent || ''
+                )
+              );
+              if (description.length > 120) {
+                description = description.substring(0, 120) + '...';
+              }
+
+              // Calculate age in hours
+              const hoursAgo = Math.max(0, Math.floor((now - pubDate.getTime()) / (1000 * 60 * 60)));
+
+              // Only include recent articles
+              if (title && link && hoursAgo <= CONFIG.HOURS_RECENT) {
+                articles.push({
+                  id: `${link}-${index}`,
+                  title,
+                  link,
+                  description,
+                  publishedDate: pubDate,
+                  hoursAgo,
+                });
+              }
+            } catch (error) {
+              console.warn('Error parsing article:', error);
             }
           });
 
           return articles;
         } catch (error) {
-          console.error("RSS parsing error:", error);
+          console.error('RSS parsing error:', error);
           return [];
         }
       }
 
-      // Weather fetching (unchanged)
-      async function fetchWeatherForCity(coords, cityName) {
-        try {
-          const url =
-            `${CONFIG.WEATHER_API_BASE}?latitude=${coords.lat}` +
-            `&longitude=${coords.lon}` +
-            "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code" +
-            "&temperature_unit=fahrenheit&wind_speed_unit=mph" +
-            "&timezone=America%2FLos_Angeles";
+      // HTML entity decoder
+      function decodeHTML(html) {
+        const txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
+      }
 
-          const response = await fetch(url);
+      // Strip HTML tags
+      function stripHTML(html) {
+        return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+      }
+
+      // Deduplicate articles by title similarity
+      function deduplicateArticles(articles) {
+        const seen = new Set();
+        return articles.filter(article => {
+          const normalized = article.title
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          if (seen.has(normalized)) return false;
+          seen.add(normalized);
+          return true;
+        });
+      }
+
+      // Format relative time
+      function formatRelativeTime(date) {
+        const diffMs = Date.now() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+
+        const hours = Math.floor(diffMins / 60);
+        if (hours < 24) return `${hours}h ago`;
+
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
+      }
+
+      // ============================================
+      // CACHE MANAGEMENT
+      // ============================================
+
+      const Cache = {
+        save(key, data) {
+          try {
+            localStorage.setItem(key, JSON.stringify(data));
+            return true;
+          } catch (error) {
+            console.warn('Cache save failed:', error);
+            return false;
+          }
+        },
+
+        load(key) {
+          try {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+          } catch (error) {
+            console.warn('Cache load failed:', error);
+            return null;
+          }
+        },
+
+        isValid() {
+          const timestamp = this.load(CACHE_KEYS.timestamp);
+          if (!timestamp) return false;
+
+          const age = Date.now() - timestamp;
+          return age < CONFIG.CACHE_DURATION;
+        },
+
+        saveAll() {
+          this.save(CACHE_KEYS.tulare, state.news.tulare);
+          this.save(CACHE_KEYS.fresno, state.news.fresno);
+          this.save(CACHE_KEYS.weather, state.weather);
+          this.save(CACHE_KEYS.timestamp, Date.now());
+        },
+
+        loadAll() {
+          const tulare = this.load(CACHE_KEYS.tulare);
+          const fresno = this.load(CACHE_KEYS.fresno);
+          const weather = this.load(CACHE_KEYS.weather);
+
+          if (tulare) {
+            state.news.tulare = tulare.map(a => ({
+              ...a,
+              publishedDate: new Date(a.publishedDate),
+            }));
+          }
+
+          if (fresno) {
+            state.news.fresno = fresno.map(a => ({
+              ...a,
+              publishedDate: new Date(a.publishedDate),
+            }));
+          }
+
+          if (weather) {
+            state.weather = weather;
+          }
+
+          return tulare || fresno || weather;
+        },
+      };
+
+      // ============================================
+      // DATA FETCHING
+      // ============================================
+
+      async function fetchNews(feeds, county) {
+        const allArticles = [];
+
+        const results = await Promise.allSettled(
+          feeds.map(async feed => {
+            try {
+              const xml = await fetchRSS(feed);
+              return parseRSS(xml);
+            } catch (error) {
+              console.warn(`Failed to fetch ${county} feed:`, error);
+              return [];
+            }
+          })
+        );
+
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            allArticles.push(...result.value);
+          }
+        });
+
+        // Deduplicate and sort
+        const unique = deduplicateArticles(allArticles);
+        return unique
+          .sort((a, b) => b.publishedDate - a.publishedDate)
+          .slice(0, CONFIG.MAX_ARTICLES);
+      }
+
+      async function fetchWeather(coords, city) {
+        try {
+          const url = `${CONFIG.WEATHER.apiBase}?` +
+            `latitude=${coords.lat}&longitude=${coords.lon}&` +
+            'current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&' +
+            'temperature_unit=fahrenheit&wind_speed_unit=mph&' +
+            'timezone=America%2FLos_Angeles';
+
+          const response = await fetchWithTimeout(url);
+
           if (!response.ok) {
-            throw new Error(`Weather API error for ${cityName}`);
+            throw new Error(`Weather API error: ${response.status}`);
           }
 
           const data = await response.json();
-
-          const weatherCode = data.current.weather_code;
-          const weatherInfo = getWeatherInfo(weatherCode);
+          const code = data.current.weather_code;
+          const weatherInfo = getWeatherInfo(code);
 
           return {
+            city,
             temperature: Math.round(data.current.temperature_2m),
             humidity: data.current.relative_humidity_2m,
             windSpeed: Math.round(data.current.wind_speed_10m),
             condition: weatherInfo.description,
             icon: weatherInfo.icon,
-            city: cityName,
+            color: weatherInfo.color,
           };
         } catch (error) {
-          console.error(`Weather fetch error for ${cityName}:`, error);
+          console.error(`Weather fetch error for ${city}:`, error);
           throw error;
-        }
-      }
-
-      async function fetchWeather() {
-        try {
-          const [tulareWeather, fresnoWeather] = await Promise.all([
-            fetchWeatherForCity(CONFIG.TULARE_COORDS, "Tulare"),
-            fetchWeatherForCity(CONFIG.FRESNO_COORDS, "Fresno"),
-          ]);
-
-          state.tulareWeather = tulareWeather;
-          state.fresnoWeather = fresnoWeather;
-
-          updateWeatherDisplay();
-        } catch (error) {
-          console.error("Weather fetch error:", error);
-          showError("Failed to load weather data");
         }
       }
 
       function getWeatherInfo(code) {
         const weatherMap = {
-          0: { description: "Clear Sky", icon: "fas fa-sun" },
-          1: { description: "Mainly Clear", icon: "fas fa-sun" },
-          2: { description: "Partly Cloudy", icon: "fas fa-cloud-sun" },
-          3: { description: "Overcast", icon: "fas fa-cloud" },
-          45: { description: "Fog", icon: "fas fa-smog" },
-          48: { description: "Depositing Rime Fog", icon: "fas fa-smog" },
-          51: { description: "Light Drizzle", icon: "fas fa-cloud-rain" },
-          53: { description: "Moderate Drizzle", icon: "fas fa-cloud-rain" },
-          55: { description: "Dense Drizzle", icon: "fas fa-cloud-rain" },
-          61: { description: "Slight Rain", icon: "fas fa-cloud-rain" },
-          63: { description: "Moderate Rain", icon: "fas fa-cloud-rain" },
-          65: {
-            description: "Heavy Rain",
-            icon: "fas fa-cloud-showers-heavy",
-          },
-          71: { description: "Slight Snow", icon: "fas fa-snowflake" },
-          73: { description: "Moderate Snow", icon: "fas fa-snowflake" },
-          75: { description: "Heavy Snow", icon: "fas fa-snowflake" },
-          95: { description: "Thunderstorm", icon: "fas fa-bolt" },
+          0: { description: 'Clear Sky', icon: 'fa-sun', color: 'text-yellow-400' },
+          1: { description: 'Mainly Clear', icon: 'fa-sun', color: 'text-yellow-400' },
+          2: { description: 'Partly Cloudy', icon: 'fa-cloud-sun', color: 'text-gray-400' },
+          3: { description: 'Overcast', icon: 'fa-cloud', color: 'text-gray-400' },
+          45: { description: 'Fog', icon: 'fa-smog', color: 'text-gray-400' },
+          48: { description: 'Rime Fog', icon: 'fa-smog', color: 'text-gray-400' },
+          51: { description: 'Light Drizzle', icon: 'fa-cloud-rain', color: 'text-blue-400' },
+          53: { description: 'Drizzle', icon: 'fa-cloud-rain', color: 'text-blue-400' },
+          55: { description: 'Dense Drizzle', icon: 'fa-cloud-rain', color: 'text-blue-500' },
+          61: { description: 'Light Rain', icon: 'fa-cloud-rain', color: 'text-blue-400' },
+          63: { description: 'Rain', icon: 'fa-cloud-rain', color: 'text-blue-500' },
+          65: { description: 'Heavy Rain', icon: 'fa-cloud-showers-heavy', color: 'text-blue-600' },
+          71: { description: 'Light Snow', icon: 'fa-snowflake', color: 'text-cyan-300' },
+          73: { description: 'Snow', icon: 'fa-snowflake', color: 'text-cyan-300' },
+          75: { description: 'Heavy Snow', icon: 'fa-snowflake', color: 'text-cyan-400' },
+          77: { description: 'Snow Grains', icon: 'fa-snowflake', color: 'text-cyan-300' },
+          80: { description: 'Light Showers', icon: 'fa-cloud-rain', color: 'text-blue-400' },
+          81: { description: 'Showers', icon: 'fa-cloud-showers-heavy', color: 'text-blue-500' },
+          82: { description: 'Heavy Showers', icon: 'fa-cloud-showers-heavy', color: 'text-blue-600' },
+          95: { description: 'Thunderstorm', icon: 'fa-bolt', color: 'text-yellow-400' },
+          96: { description: 'Thunderstorm + Hail', icon: 'fa-bolt', color: 'text-yellow-500' },
+          99: { description: 'Heavy Thunderstorm', icon: 'fa-bolt', color: 'text-yellow-500' },
         };
 
-        return (
-          weatherMap[code] || {
-            description: "Unknown",
-            icon: "fas fa-question",
-          }
-        );
+        return weatherMap[code] || { 
+          description: 'Unknown', 
+          icon: 'fa-question', 
+          color: 'text-gray-400' 
+        };
       }
 
-      function updateWeatherDisplay() {
-        if (state.tulareWeather) {
-          document.getElementById("tulare-temp").textContent =
-            `${state.tulareWeather.temperature}°F`;
-          document.getElementById("tulare-condition").textContent =
-            state.tulareWeather.condition;
+      // ============================================
+      // UI RENDERING
+      // ============================================
 
-          const tulareIcon =
-            document.getElementById("tulare-weather-icon");
-          tulareIcon.className = `fas text-2xl ${
-            state.tulareWeather.icon
-          } ${
-            state.tulareWeather.icon.includes("fa-sun")
-              ? "text-yellow-400"
-              : state.tulareWeather.icon.includes("rain")
-              ? "text-blue-400"
-              : "text-gray-400"
-          }`;
+      function renderWeather() {
+        const { tulare, fresno } = state.weather;
+
+        if (tulare) {
+          document.getElementById('tulare-temp').textContent = `${tulare.temperature}°`;
+          document.getElementById('tulare-condition').textContent = tulare.condition;
+          document.getElementById('tulare-humidity').textContent = `${tulare.humidity}%`;
+          document.getElementById('tulare-wind').textContent = `${tulare.windSpeed} mph`;
+
+          const icon = document.getElementById('tulare-weather-icon');
+          icon.className = `fas ${tulare.icon} text-xl ${tulare.color}`;
         }
 
-        if (state.fresnoWeather) {
-          document.getElementById("fresno-temp").textContent =
-            `${state.fresnoWeather.temperature}°F`;
-          document.getElementById("fresno-condition").textContent =
-            state.fresnoWeather.condition;
+        if (fresno) {
+          document.getElementById('fresno-temp').textContent = `${fresno.temperature}°`;
+          document.getElementById('fresno-condition').textContent = fresno.condition;
+          document.getElementById('fresno-humidity').textContent = `${fresno.humidity}%`;
+          document.getElementById('fresno-wind').textContent = `${fresno.windSpeed} mph`;
 
-          const fresnoIcon =
-            document.getElementById("fresno-weather-icon");
-          fresnoIcon.className = `fas text-2xl ${
-            state.fresnoWeather.icon
-          } ${
-            state.fresnoWeather.icon.includes("fa-sun")
-              ? "text-yellow-400"
-              : state.fresnoWeather.icon.includes("rain")
-              ? "text-blue-400"
-              : "text-gray-400"
-          }`;
+          const icon = document.getElementById('fresno-weather-icon');
+          icon.className = `fas ${fresno.icon} text-xl ${fresno.color}`;
         }
       }
 
-      // Fetch all news (logic unchanged; UI updates added)
-      async function fetchAllNews() {
-        try {
-          // Fetch Tulare County news
-          const tularePromises = CONFIG.TULARE_FEEDS.map(
-            async (feed) => {
-              try {
-                const data = await fetchRSSFeed(feed);
-                return parseRSSFeed(data, "Tulare County");
-              } catch (error) {
-                console.warn(`Failed to fetch Tulare feed:`, error);
-                return [];
-              }
-            }
-          );
+      function renderNews(county) {
+        const articles = state.news[county];
+        const visible = state.ui[`${county}Visible`];
+        const container = document.getElementById(`${county}-news`);
+        const countEl = document.getElementById(`${county}-count`);
 
-          // Fetch Fresno County news
-          const fresnoPromises = CONFIG.FRESNO_FEEDS.map(
-            async (feed) => {
-              try {
-                const data = await fetchRSSFeed(feed);
-                return parseRSSFeed(data, "Fresno County");
-              } catch (error) {
-                console.warn(`Failed to fetch Fresno feed:`, error);
-                return [];
-              }
-            }
-          );
-
-          const [tulareResults, fresnoResults] = await Promise.all([
-            Promise.all(tularePromises),
-            Promise.all(fresnoPromises),
-          ]);
-
-          // Process Tulare news
-          const allTulare = tulareResults.flat();
-          state.tulareNews = deduplicateArticles(allTulare)
-            .sort((a, b) => b.publishedDate - a.publishedDate)
-            .slice(0, CONFIG.MAX_HEADLINES);
-
-          // Process Fresno news
-          const allFresno = fresnoResults.flat();
-          state.fresnoNews = deduplicateArticles(allFresno)
-            .sort((a, b) => b.publishedDate - a.publishedDate)
-            .slice(0, CONFIG.MAX_HEADLINES);
-
-          state.lastUpdate = new Date();
-
-          // Reset visible counts
-          state.tulareVisibleCount = CONFIG.INITIAL_HEADLINES;
-          state.fresnoVisibleCount = CONFIG.INITIAL_HEADLINES;
-
-          updateDisplay();
-          updateLastUpdated();
-        } catch (error) {
-          console.error("Error fetching news:", error);
-          showError(
-            "Failed to load news. Please check your internet connection."
-          );
-        }
-      }
-
-      function deduplicateArticles(articles) {
-        const seen = new Set();
-        return articles.filter((article) => {
-          const normalizedTitle = article.title
-            .toLowerCase()
-            .replace(/[^\w\s]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-          if (seen.has(normalizedTitle)) return false;
-          seen.add(normalizedTitle);
-          return true;
-        });
-      }
-
-      function updateDisplay() {
-        updateTulareNews();
-        updateFresnoNews();
-      }
-
-      // Layout-only: accessible anchors, focus states, subtle hover
-      function renderNewsSection(
-        articles,
-        containerId,
-        emptyMessage,
-        emptyIcon,
-        visibleCount,
-        county
-      ) {
-        const container = document.getElementById(containerId);
+        // Update count
+        countEl.textContent = articles.length;
 
         if (articles.length === 0) {
           container.innerHTML = `
             <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-              <i class="${emptyIcon} text-3xl mb-3"></i>
-              <p>${emptyMessage}</p>
+              <i class="fas fa-inbox text-3xl mb-2 opacity-50"></i>
+              <p class="text-sm font-medium mb-2">No recent news</p>
+              <p class="text-xs">Try refreshing to fetch new articles</p>
+              <button
+                onclick="loadAllData()"
+                class="mt-3 px-3 py-1.5 bg-accent text-white rounded-md hover:bg-blue-600 transition-smooth text-sm"
+              >
+                <i class="fas fa-redo mr-1"></i>Refresh
+              </button>
             </div>
           `;
           return;
         }
 
-        const visibleArticles = articles.slice(0, visibleCount);
-        const hasMoreArticles = articles.length > visibleCount;
+        const visibleArticles = articles.slice(0, visible);
+        const hasMore = articles.length > visible;
 
-        const articlesHTML = visibleArticles
-          .map(
-            (article, index) => `
-          <article
-            class="${
-              index > 0
-                ? "border-t border-gray-200 dark:border-gray-700 pt-4 mt-4"
-                : ""
-            } mb-2 animate-slide-in news-item"
-          >
+        const articlesHTML = visibleArticles.map((article, idx) => `
+          <article class="news-link rounded-md p-3 -mx-3 ${idx > 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''}" style="animation-delay: ${idx * 0.05}s">
             <a
               href="${article.link}"
               target="_blank"
               rel="noopener noreferrer"
-              class="group rounded-lg p-3 -m-3 block focus:outline-none focus:ring-2 focus:ring-primary/70 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-surface hover:bg-gray-50 dark:hover:bg-white/5"
-              aria-label="${article.title.replace(/"/g, "&quot;")}"
+              class="block group focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded-md"
+              aria-label="${article.title.replace(/"/g, '&quot;')}"
             >
-              <h3
-                class="text-base font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-150 leading-snug"
-              >
+              <h3 class="font-medium text-sm text-gray-900 dark:text-white group-hover:text-accent dark:group-hover:text-accent transition-colors mb-1 leading-snug">
                 ${article.title}
               </h3>
 
-              ${
-                article.description
-                  ? `<p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                       ${article.description}
-                     </p>`
-                  : ""
-              }
+              ${article.description ? `
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                  ${article.description}
+                </p>
+              ` : ''}
 
-              <div
-                class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500 mt-2"
-              >
-                <span class="flex items-center">
-                  <i class="fas fa-clock mr-1"></i>
-                  ${
-                    article.hoursAgo === 0
-                      ? "Just now"
-                      : article.hoursAgo < 24
-                      ? `${article.hoursAgo}h ago`
-                      : `${Math.floor(article.hoursAgo / 24)}d ago`
-                  }
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                <span class="flex items-center gap-1">
+                  <i class="far fa-clock"></i>
+                  ${article.hoursAgo === 0 ? 'Just now' : 
+                    article.hoursAgo < 24 ? `${article.hoursAgo}h ago` : 
+                    `${Math.floor(article.hoursAgo / 24)}d ago`}
                 </span>
-                <span
-                  class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                >
-                  <i class="fas fa-external-link-alt mr-1"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                   Read more
+                  <i class="fas fa-arrow-right"></i>
                 </span>
               </div>
             </a>
           </article>
-        `
-          )
-          .join("");
+        `).join('');
 
-        const loadMoreButton = hasMoreArticles
-          ? `
-          <div
-            class="text-center mt-5 pt-4 border-t border-gray-200 dark:border-gray-700"
-          >
+        const loadMoreHTML = hasMore ? `
+          <div class="text-center pt-3 border-t border-gray-100 dark:border-gray-700">
             <button
-              onclick="loadMore${county}News()"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg shadow-sm hover:shadow-md hover:bg-indigo-600 transition-all duration-150"
+              onclick="loadMore('${county}')"
+              class="px-3 py-1.5 text-sm font-medium text-accent hover:text-blue-600 dark:text-accent dark:hover:text-blue-600 bg-accent/10 hover:bg-accent/20 rounded-md transition-smooth"
             >
-              <i class="fas fa-plus-circle mr-2"></i>
-              Load more headlines (${articles.length - visibleCount} remaining)
+              <i class="fas fa-chevron-down mr-1"></i>
+              Show ${articles.length - visible} more
             </button>
           </div>
-        `
-          : "";
+        ` : '';
 
-        container.innerHTML = articlesHTML + loadMoreButton;
+        container.innerHTML = articlesHTML + loadMoreHTML;
       }
 
-      // Load more functions (unchanged)
-      function loadMoreTulareNews() {
-        state.tulareVisibleCount = CONFIG.MAX_HEADLINES;
-        updateTulareNews();
-      }
-
-      function loadMoreFresnoNews() {
-        state.fresnoVisibleCount = CONFIG.MAX_HEADLINES;
-        updateFresnoNews();
-      }
-
-      function updateTulareNews() {
-        renderNewsSection(
-          state.tulareNews,
-          "tulare-news",
-          "No Tulare County news available at the moment.",
-          "fas fa-seedling",
-          state.tulareVisibleCount,
-          "Tulare"
-        );
-      }
-
-      function updateFresnoNews() {
-        renderNewsSection(
-          state.fresnoNews,
-          "fresno-news",
-          "No Fresno County news available at the moment.",
-          "fas fa-city",
-          state.fresnoVisibleCount,
-          "Fresno"
-        );
-      }
-
-      // Last-updated UI (layout-only)
-      function relativeTimeFromNow(date) {
-        const diffMins = Math.floor(
-          (Date.now() - date.getTime()) / 60000
-        );
-        if (diffMins < 1) return "Just now";
-        if (diffMins < 60) return `${diffMins}m ago`;
-        const hours = Math.floor(diffMins / 60);
-        if (hours < 24) return `${hours}h ago`;
-        const days = Math.floor(hours / 24);
-        return `${days}d ago`;
+      function loadMore(county) {
+        state.ui[`${county}Visible`] = CONFIG.MAX_ARTICLES;
+        renderNews(county);
       }
 
       function updateLastUpdated() {
-        const el = document.getElementById("last-updated-value");
-        if (!el || !state.lastUpdate) return;
-        el.textContent = relativeTimeFromNow(state.lastUpdate);
+        if (!state.ui.lastRefresh) return;
+
+        const el = document.getElementById('last-updated-value');
+        el.textContent = formatRelativeTime(state.ui.lastRefresh);
       }
 
-      // Initialize application
-      async function initializeApp() {
-        initializeDarkMode();
+      // ============================================
+      // TAB MANAGEMENT
+      // ============================================
 
-        // Event listeners
-        document
-          .getElementById("refresh-btn")
-          .addEventListener("click", () => {
-            loadAllData();
-          });
+      function switchTab(tab) {
+        // Update state
+        state.ui.activeTab = tab;
 
-        document
-          .getElementById("theme-toggle")
-          .addEventListener("click", () => {
-            document.documentElement.classList.toggle("dark");
-            state.isDarkMode = !state.isDarkMode;
-          });
+        // Update tab styling
+        document.getElementById('tulare-tab').classList.toggle('tab-active', tab === 'tulare');
+        document.getElementById('fresno-tab').classList.toggle('tab-active', tab === 'fresno');
 
-        // Load initial data
-        await loadAllData();
+        // Show/hide content
+        document.getElementById('tulare-content').classList.toggle('hidden', tab !== 'tulare');
+        document.getElementById('fresno-content').classList.toggle('hidden', tab !== 'fresno');
 
-        // Hide loading spinner
-        document.getElementById("loading").classList.add("hidden");
-
-        // Update "last updated" every minute
-        setInterval(updateLastUpdated, 60 * 1000);
+        // Render the active tab content
+        renderNews(tab);
       }
 
-      async function loadAllData() {
-        const refreshBtn = document.getElementById("refresh-btn");
-        refreshBtn.innerHTML =
-          '<i class="fas fa-sync-alt animate-spin"></i>';
+      // ============================================
+      // MAIN DATA LOADING
+      // ============================================
+
+      async function loadAllData(showSpinner = false) {
+        // Rate limiting
+        if (state.ui.isRefreshing) {
+          Toast.show('Already refreshing...', 'info', 2000);
+          return;
+        }
+
+        if (state.ui.lastRefresh) {
+          const timeSinceRefresh = Date.now() - state.ui.lastRefresh.getTime();
+          if (timeSinceRefresh < CONFIG.MIN_REFRESH_INTERVAL) {
+            const waitSecs = Math.ceil((CONFIG.MIN_REFRESH_INTERVAL - timeSinceRefresh) / 1000);
+            Toast.show(`Please wait ${waitSecs}s before refreshing again`, 'warning');
+            return;
+          }
+        }
+
+        state.ui.isRefreshing = true;
+
+        // Update UI
+        const refreshBtn = document.getElementById('refresh-btn');
+        const refreshIcon = document.getElementById('refresh-icon');
+        refreshBtn.disabled = true;
+        refreshIcon.classList.add('animate-spin');
 
         try {
-          await Promise.all([fetchAllNews(), fetchWeather()]);
+          // Fetch all data in parallel
+          const [tulareNews, fresnoNews, tulareWeather, fresnoWeather] = await Promise.allSettled([
+            fetchNews(CONFIG.FEEDS.tulare, 'tulare'),
+            fetchNews(CONFIG.FEEDS.fresno, 'fresno'),
+            fetchWeather(CONFIG.WEATHER.coords.tulare, 'Tulare'),
+            fetchWeather(CONFIG.WEATHER.coords.fresno, 'Fresno'),
+          ]);
+
+          // Update state with successful results
+          if (tulareNews.status === 'fulfilled') {
+            state.news.tulare = tulareNews.value;
+          }
+          if (fresnoNews.status === 'fulfilled') {
+            state.news.fresno = fresnoNews.value;
+          }
+          if (tulareWeather.status === 'fulfilled') {
+            state.weather.tulare = tulareWeather.value;
+          }
+          if (fresnoWeather.status === 'fulfilled') {
+            state.weather.fresno = fresnoWeather.value;
+          }
+
+          // Check if we got any data
+          const hasData = 
+            (tulareNews.status === 'fulfilled' && tulareNews.value.length > 0) ||
+            (fresnoNews.status === 'fulfilled' && fresnoNews.value.length > 0);
+
+          if (hasData) {
+            state.ui.lastRefresh = new Date();
+            Cache.saveAll();
+            Toast.show('News updated successfully!', 'success');
+          } else {
+            Toast.show('No new articles found', 'warning');
+          }
+
+          // Render updates
+          renderWeather();
+          renderNews(state.ui.activeTab);
+          updateLastUpdated();
+
         } catch (error) {
-          console.error("Error loading data:", error);
-          showError("Failed to load some data. Please try refreshing.");
+          console.error('Load error:', error);
+          Toast.show('Failed to load data. Please try again.', 'error');
         } finally {
-          refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+          state.ui.isRefreshing = false;
+          refreshBtn.disabled = false;
+          refreshIcon.classList.remove('animate-spin');
         }
       }
 
-      // Start the application
-      document.addEventListener("DOMContentLoaded", initializeApp);
+      // ============================================
+      // THEME MANAGEMENT
+      // ============================================
 
-      // Auto-refresh every 15 minutes
-      setInterval(() => {
-        loadAllData();
-      }, 15 * 60 * 1000);
+      function initTheme() {
+        const saved = Cache.load(CACHE_KEYS.theme);
+
+        if (saved === 'dark' || saved === 'light') {
+          state.ui.isDarkMode = saved === 'dark';
+        } else {
+          state.ui.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        document.documentElement.classList.toggle('dark', state.ui.isDarkMode);
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+          if (!Cache.load(CACHE_KEYS.theme)) {
+            state.ui.isDarkMode = e.matches;
+            document.documentElement.classList.toggle('dark', e.matches);
+          }
+        });
+      }
+
+      function toggleTheme() {
+        state.ui.isDarkMode = !state.ui.isDarkMode;
+        document.documentElement.classList.toggle('dark', state.ui.isDarkMode);
+        Cache.save(CACHE_KEYS.theme, state.ui.isDarkMode ? 'dark' : 'light');
+      }
+
+      // ============================================
+      // INITIALIZATION
+      // ============================================
+
+      async function init() {
+        // Initialize theme immediately
+        initTheme();
+
+        // Load cached data
+        const hasCache = Cache.loadAll();
+        if (hasCache && Cache.isValid()) {
+          renderWeather();
+          renderNews(state.ui.activeTab);
+          Toast.show('Loaded from cache', 'info', 2000);
+
+          if (state.news.tulare.length || state.news.fresno.length) {
+            state.ui.lastRefresh = new Date(Cache.load(CACHE_KEYS.timestamp));
+            updateLastUpdated();
+          }
+        }
+
+        // Setup event listeners
+        document.getElementById('refresh-btn').addEventListener('click', () => loadAllData());
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Setup network status
+        window.addEventListener('online', () => {
+          Toast.show('Back online', 'success', 2000);
+          loadAllData();
+        });
+        window.addEventListener('offline', () => {
+          Toast.show('You are offline', 'warning', 3000);
+        });
+
+        // Load fresh data
+        await loadAllData();
+
+        // Hide loading screen
+        const loadingScreen = document.getElementById('loading');
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 300);
+
+        // Update "last updated" every minute
+        setInterval(updateLastUpdated, 60 * 1000);
+
+        // Auto-refresh every 15 minutes
+        setInterval(() => {
+          if (navigator.onLine && !state.ui.isRefreshing) {
+            loadAllData();
+          }
+        }, CONFIG.AUTO_REFRESH);
+      }
+
+      // Start the app when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
     </script>
   </body>
 </html>
