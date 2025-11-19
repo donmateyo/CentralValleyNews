@@ -37,16 +37,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .skeleton {
-            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
         .active-scale:active {
             transform: scale(0.96);
             transition: transform 0.1s;
@@ -61,6 +51,17 @@
         
         .tab-indicator {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Toast Animation */
+        .toast {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
         }
     </style>
 
@@ -95,10 +96,10 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-white tracking-tight leading-none">Valley Pulse</h1>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" id="current-date">Loading...</p>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" id="status-text">Ready</p>
                 </div>
             </div>
-            <button id="refresh-btn" onclick="refreshAll()" class="p-2 rounded-full bg-slate-800/50 hover:bg-white/10 active-scale text-blue-400 border border-white/5 transition-all">
+            <button id="refresh-btn" onclick="refreshAll(true)" class="p-2 rounded-full bg-slate-800/50 hover:bg-white/10 active-scale text-blue-400 border border-white/5 transition-all">
                 <i class="ph-bold ph-arrows-clockwise text-lg"></i>
             </button>
         </div>
@@ -165,7 +166,8 @@
         <section>
             <div class="flex flex-col gap-3 mb-3">
                 <div class="flex justify-between items-center px-1">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Local Headlines</h2>
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Headlines</h2>
+                    <span id="last-updated" class="text-[9px] text-slate-500"></span>
                 </div>
                 
                 <!-- Tab Switcher -->
@@ -181,10 +183,8 @@
             </div>
 
             <!-- News Grid -->
-            <div id="news-container" class="grid grid-cols-2 gap-2">
-                <!-- Skeletons -->
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
+            <div id="news-container" class="grid grid-cols-2 gap-2 min-h-[200px]">
+                <!-- Skeletons shown only on very first load -->
                 <div class="glass-panel rounded-xl h-40 skeleton"></div>
                 <div class="glass-panel rounded-xl h-40 skeleton"></div>
             </div>
@@ -196,12 +196,18 @@
             
             <div id="news-error" class="hidden text-center py-12 glass-panel rounded-xl col-span-2">
                 <i class="ph-duotone ph-wifi-slash text-3xl text-slate-500 mb-2"></i>
-                <p class="text-slate-400 text-xs">Unable to load feeds. Check network.</p>
-                <button onclick="refreshAll()" class="mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 transition">Retry</button>
+                <p class="text-slate-400 text-xs">Unable to connect.</p>
+                <button onclick="refreshAll(true)" class="mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg">Retry</button>
             </div>
         </section>
 
     </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-800 border border-white/10 px-4 py-2 rounded-full shadow-xl flex items-center gap-2 z-50 toast">
+        <i class="ph-fill ph-check-circle text-green-400" id="toast-icon"></i>
+        <span class="text-xs font-medium text-white" id="toast-msg">Updated</span>
+    </div>
 
     <!-- Tab Bar -->
     <nav class="fixed bottom-0 left-0 right-0 glass-panel border-t border-white/5 pb-safe z-40">
@@ -234,13 +240,13 @@
             { name: 'KMPH', url: 'https://kmph.com/rss', color: 'text-orange-400' }
         ];
 
-        // Expanded Proxy list to handle failures
+        // Robust Proxy list
         const PROXIES = [
-            // CodeTabs - often reliable
+            // CodeTabs (Fastest/Reliable)
             url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            // AllOrigins - supports specific disableCache param
-            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&disableCache=true`,
-            // CorsProxy.io - fallback
+            // AllOrigins (Fallback)
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            // CorsProxy (Last resort)
             url => `https://corsproxy.io/?${encodeURIComponent(url)}`
         ];
 
@@ -250,24 +256,53 @@
         let allArticles = [];
         let currentTab = 'fresno';
 
-        // --- Utilities ---
-        function parseRSSDate(dateStr) {
+        // --- State & Cache Management ---
+        
+        function saveCache(articles) {
             try {
-                let d = new Date(dateStr);
-                if (!isNaN(d.getTime())) return d;
-                return new Date();
-            } catch (e) { return new Date(); }
+                const cacheData = {
+                    timestamp: Date.now(),
+                    articles: articles
+                };
+                localStorage.setItem('valley_pulse_news', JSON.stringify(cacheData));
+                document.getElementById('last-updated').textContent = 'Updated just now';
+            } catch (e) { console.error("Cache save failed", e); }
         }
 
-        function updateDate() {
-            const now = new Date();
-            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        function loadCache() {
+            try {
+                const cached = localStorage.getItem('valley_pulse_news');
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    // Rehydrate dates
+                    allArticles = data.articles.map(a => ({...a, pubDateObj: new Date(a.pubDateObj)}));
+                    
+                    const minsAgo = Math.floor((Date.now() - data.timestamp) / 60000);
+                    document.getElementById('last-updated').textContent = minsAgo < 60 ? `Updated ${minsAgo}m ago` : 'Updated a while ago';
+                    
+                    renderNews();
+                    return true;
+                }
+            } catch (e) { console.error("Cache load failed", e); }
+            return false;
         }
 
-        // --- Weather Logic ---
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const text = document.getElementById('toast-msg');
+            
+            text.textContent = msg;
+            icon.className = type === 'success' ? 'ph-fill ph-check-circle text-green-400' : 'ph-fill ph-warning-circle text-red-400';
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- Weather Logic (Same as before) ---
         async function fetchWeather(key) {
             const loc = LOCATIONS[key];
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FLos_Angeles&t=${Date.now()}`;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FLos_Angeles`;
 
             try {
                 const response = await fetch(url);
@@ -278,14 +313,12 @@
                 document.getElementById(`temp-${key}`).textContent = `${Math.round(current.temperature)}°`;
                 document.getElementById(`icon-${key}`).innerHTML = getWeatherIcon(current.weathercode);
                 document.getElementById(`desc-${key}`).textContent = getWeatherDesc(current.weathercode);
-                
                 if(daily) {
                     document.getElementById(`high-${key}`).textContent = `${Math.round(daily.temperature_2m_max[0])}°`;
                     document.getElementById(`low-${key}`).textContent = `${Math.round(daily.temperature_2m_min[0])}°`;
                 }
             } catch (error) { console.error(error); }
         }
-
         function getWeatherIcon(code) {
             if (code === 0) return '<i class="ph-fill ph-sun text-yellow-400"></i>';
             if (code <= 3) return '<i class="ph-fill ph-cloud-sun text-yellow-200"></i>';
@@ -296,58 +329,39 @@
             return '<i class="ph-fill ph-cloud text-slate-400"></i>';
         }
         function getWeatherDesc(code) {
-            const codes = { 0:'Clear', 1:'Fair', 2:'Cloudy', 3:'Overcast', 45:'Fog', 48:'Fog', 51:'Drizzle', 61:'Rain', 63:'Rain', 95:'Storm' };
+            const codes = { 0:'Clear', 1:'Fair', 2:'Cloudy', 3:'Overcast', 45:'Fog', 48:'Fog', 51:'Drizzle', 61:'Rain', 95:'Storm' };
             return codes[code] || 'Cloudy';
         }
 
-        // --- Robust Fetcher ---
+        // --- Fetch Logic ---
         async function fetchWithFallback(sourceUrl) {
-            // Add a timestamp specifically for caches that respect query params
-            const ts = Date.now();
-            
             for (const proxyFn of PROXIES) {
                 const proxyUrl = proxyFn(sourceUrl);
                 try {
-                    // Note: Some proxies like corsproxy.io might not like extra params appended blindly
-                    // but for most, appending &t=... or ?t=... is safe if done carefully.
-                    // We rely on the PROXIES definition to handle encoding.
-                    // We append a cache buster only if the proxy string already has params,
-                    // or handle it inside the proxy def.
-                    // Simplified: Just fetch. AllOrigins handled via disableCache. CodeTabs ignores extra params usually.
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), 8000); // 8s timeout per proxy
+                    const res = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(id);
                     
-                    const res = await fetch(proxyUrl);
                     if (!res.ok) throw new Error(`Status ${res.status}`);
                     const text = await res.text();
-                    
-                    // Validation: RSS/XML should start with <
-                    if (text.trim().startsWith('<')) {
-                        return text;
-                    }
-                    throw new Error('Response was not XML');
-                } catch (e) {
-                    console.warn(`Proxy attempt failed for ${sourceUrl}:`, e);
-                    continue; // Try next proxy
-                }
+                    if (text.trim().startsWith('<')) return text;
+                } catch (e) { continue; }
             }
-            throw new Error(`All proxies failed for ${sourceUrl}`);
+            throw new Error('All proxies failed');
         }
 
-        // --- XML Parsing Logic ---
         function parseXMLFeed(xmlText, source) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const items = Array.from(xmlDoc.querySelectorAll("item"));
-            
-            return items.map(item => {
+            return Array.from(xmlDoc.querySelectorAll("item")).map(item => {
                 const title = item.querySelector("title")?.textContent || "";
                 const link = item.querySelector("link")?.textContent || "";
-                const pubDate = item.querySelector("pubDate")?.textContent || "";
+                const pubDateStr = item.querySelector("pubDate")?.textContent || "";
                 const description = item.querySelector("description")?.textContent || "";
                 const content = item.getElementsByTagNameNS("*", "content")[0]?.textContent || "";
 
                 let imageUrl = null;
-                
-                // 1. Check Media Namespace
                 const mediaContent = item.getElementsByTagNameNS("*", "content");
                 for(let i=0; i<mediaContent.length; i++) {
                     if(mediaContent[i].getAttribute("type")?.includes("image") || mediaContent[i].getAttribute("medium") === "image") {
@@ -355,83 +369,81 @@
                         break;
                     }
                 }
-                
-                // 2. Check Enclosure
                 if(!imageUrl) {
-                    const enclosure = item.querySelector("enclosure");
-                    if(enclosure && enclosure.getAttribute("type")?.includes("image")) {
-                        imageUrl = enclosure.getAttribute("url");
-                    }
+                    const enc = item.querySelector("enclosure");
+                    if(enc && enc.getAttribute("type")?.includes("image")) imageUrl = enc.getAttribute("url");
                 }
-
-                // 3. Regex Search
                 if(!imageUrl) {
-                    const imgRegex = /<img[^>]+src="([^">]+)"/;
-                    const match = description.match(imgRegex) || content.match(imgRegex);
+                    const match = description.match(/<img[^>]+src="([^">]+)"/) || content.match(/<img[^>]+src="([^">]+)"/);
                     if (match) imageUrl = match[1];
                 }
 
+                // Date Parse
+                let d = new Date(pubDateStr);
+                if(isNaN(d.getTime())) d = new Date();
+
                 return {
-                    title,
-                    link,
-                    pubDateObj: parseRSSDate(pubDate),
-                    imageUrl,
-                    sourceName: source.name,
-                    sourceColor: source.color,
-                    description 
+                    title, link, pubDateObj: d, imageUrl,
+                    sourceName: source.name, sourceColor: source.color, description
                 };
             });
         }
 
         async function fetchNews() {
-            const container = document.getElementById('news-container');
-            const errorDiv = document.getElementById('news-error');
+            const btnIcon = document.querySelector('#refresh-btn i');
+            const statusText = document.getElementById('status-text');
             
-            container.innerHTML = `
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
-                <div class="glass-panel rounded-xl h-40 skeleton"></div>
-            `;
-            errorDiv.classList.add('hidden');
+            statusText.textContent = "Updating...";
+            btnIcon.classList.add('animate-spin');
 
-            const feedPromises = NEWS_SOURCES.map(source => 
-                fetchWithFallback(source.url)
-                .then(rawXML => parseXMLFeed(rawXML, source))
-                .catch(err => {
-                    console.error(`Final failure for ${source.name}:`, err);
-                    return [];
-                })
+            // Parallel fetching
+            const promises = NEWS_SOURCES.map(src => 
+                fetchWithFallback(src.url)
+                .then(xml => parseXMLFeed(xml, src))
+                .catch(e => [])
             );
 
             try {
-                const results = await Promise.all(feedPromises);
-                allArticles = results.flat();
-
-                const seen = new Set();
-                allArticles = allArticles.filter(a => {
-                    const key = a.title;
-                    if (seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-
-                if (allArticles.length === 0) throw new Error("No items parsed");
-
-                allArticles.sort((a, b) => b.pubDateObj.getTime() - a.pubDateObj.getTime());
-                renderNews();
-
-            } catch (error) {
-                console.error(error);
-                container.innerHTML = '';
-                errorDiv.classList.remove('hidden');
+                const results = await Promise.all(promises);
+                const flat = results.flat();
+                
+                if (flat.length > 0) {
+                    // Success
+                    const seen = new Set();
+                    allArticles = flat.filter(a => {
+                        const k = a.title;
+                        if(seen.has(k)) return false;
+                        seen.add(k);
+                        return true;
+                    });
+                    allArticles.sort((a, b) => b.pubDateObj - a.pubDateObj);
+                    
+                    saveCache(allArticles); // Persist
+                    renderNews();
+                    showToast('Feed updated');
+                } else {
+                    // Failure (Empty)
+                    if (allArticles.length === 0) throw new Error("No items");
+                    showToast('No new stories', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                // If we have cache, don't show error screen, just toast
+                if(allArticles.length > 0) {
+                    showToast('Update failed', 'error');
+                } else {
+                    document.getElementById('news-container').innerHTML = '';
+                    document.getElementById('news-error').classList.remove('hidden');
+                }
+            } finally {
+                btnIcon.classList.remove('animate-spin');
+                statusText.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             }
         }
 
         function filterNews(articles, tab) {
             return articles.filter(article => {
                 const text = (article.title + " " + (article.description || "")).toLowerCase();
-                
                 const isTulare = TULARE_KEYWORDS.some(k => text.includes(k));
                 const isFresno = FRESNO_KEYWORDS.some(k => text.includes(k));
 
@@ -450,10 +462,12 @@
         function renderNews() {
             const container = document.getElementById('news-container');
             const emptyState = document.getElementById('empty-state');
+            const errorDiv = document.getElementById('news-error');
+            
+            errorDiv.classList.add('hidden');
             const filtered = filterNews(allArticles, currentTab);
 
             container.innerHTML = '';
-            
             if (filtered.length === 0) {
                 emptyState.classList.remove('hidden');
                 return;
@@ -518,23 +532,29 @@
             renderNews();
         }
 
-        async function refreshAll() {
-            const btnIcon = document.querySelector('#refresh-btn i');
-            btnIcon.classList.add('animate-spin');
-            
-            await Promise.all([
-                fetchWeather('fresno'),
-                fetchWeather('visalia'),
-                fetchNews(),
-                new Promise(r => setTimeout(r, 500))
-            ]);
-
-            updateDate();
-            btnIcon.classList.remove('animate-spin');
+        async function refreshAll(force = false) {
+            if(force) {
+                fetchWeather('fresno');
+                fetchWeather('visalia');
+                await fetchNews();
+            } else {
+                // Initial load: Try cache first
+                const hasCache = loadCache();
+                fetchWeather('fresno');
+                fetchWeather('visalia');
+                
+                // If we have cache, fetch new data in background (user sees content immediately)
+                // If no cache, we MUST await fetchNews to show something
+                if(!hasCache) {
+                    await fetchNews();
+                } else {
+                    fetchNews(); // Background update
+                }
+            }
         }
 
-        refreshAll();
-        setInterval(refreshAll, 600000);
+        // Init
+        refreshAll(false);
     </script>
 </body>
 </html>
