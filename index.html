@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Real-time weather and news for Fresno and Tulare Counties.">
+    <meta name="description" content="Real-time weather, air quality, and news for Fresno and Tulare Counties.">
     <title>Valley Pulse</title>
 
     <!-- Tailwind CSS -->
@@ -53,7 +53,6 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Toast Animation */
         .toast {
             transform: translateY(100%);
             opacity: 0;
@@ -111,17 +110,21 @@
         <!-- Weather Section -->
         <section>
             <div class="flex justify-between items-end mb-2 px-1">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Weather</h2>
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Conditions</h2>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <!-- Fresno Card -->
-                <div id="weather-fresno" class="glass-panel rounded-xl p-3 relative overflow-hidden flex flex-col justify-between min-h-[130px]">
+                <div id="weather-fresno" class="glass-panel rounded-xl p-3 relative overflow-hidden flex flex-col justify-between min-h-[140px]">
                     <div class="flex justify-between items-start relative z-10">
                         <div>
                             <h3 class="text-sm font-bold text-white">Fresno</h3>
                             <p class="text-[10px] text-slate-400">Fresno Co.</p>
                         </div>
-                        <i class="ph-fill ph-map-pin text-blue-400 text-sm"></i>
+                        <!-- AQI Badge -->
+                        <div id="aqi-badge-fresno" class="hidden flex items-center gap-1.5 px-2 py-1 rounded bg-slate-900/40 border border-white/5 backdrop-blur-sm">
+                            <span class="text-[9px] font-bold text-slate-400">AQI</span>
+                            <span id="aqi-fresno" class="text-[10px] font-bold">--</span>
+                        </div>
                     </div>
                     <div class="mt-2 flex items-center gap-2 relative z-10">
                         <div id="icon-fresno" class="text-3xl text-yellow-400"><i class="ph-duotone ph-spinner animate-spin"></i></div>
@@ -138,13 +141,17 @@
                 </div>
 
                 <!-- Visalia Card -->
-                <div id="weather-visalia" class="glass-panel rounded-xl p-3 relative overflow-hidden flex flex-col justify-between min-h-[130px]">
+                <div id="weather-visalia" class="glass-panel rounded-xl p-3 relative overflow-hidden flex flex-col justify-between min-h-[140px]">
                     <div class="flex justify-between items-start relative z-10">
                         <div>
                             <h3 class="text-sm font-bold text-white">Visalia</h3>
                             <p class="text-[10px] text-slate-400">Tulare Co.</p>
                         </div>
-                        <i class="ph-fill ph-map-pin text-green-400 text-sm"></i>
+                        <!-- AQI Badge -->
+                        <div id="aqi-badge-visalia" class="hidden flex items-center gap-1.5 px-2 py-1 rounded bg-slate-900/40 border border-white/5 backdrop-blur-sm">
+                            <span class="text-[9px] font-bold text-slate-400">AQI</span>
+                            <span id="aqi-visalia" class="text-[10px] font-bold">--</span>
+                        </div>
                     </div>
                     <div class="mt-2 flex items-center gap-2 relative z-10">
                         <div id="icon-visalia" class="text-3xl text-yellow-400"><i class="ph-duotone ph-spinner animate-spin"></i></div>
@@ -159,6 +166,9 @@
                     </div>
                     <div class="absolute -right-4 -top-4 w-20 h-20 bg-green-500/10 rounded-full blur-xl"></div>
                 </div>
+            </div>
+            <div class="flex justify-end mt-1 px-1">
+                <span class="text-[9px] text-slate-600">Weather & AQI by Open-Meteo</span>
             </div>
         </section>
 
@@ -184,7 +194,7 @@
 
             <!-- News Grid -->
             <div id="news-container" class="grid grid-cols-2 gap-2 min-h-[200px]">
-                <!-- Skeletons shown only on very first load -->
+                <!-- Skeletons -->
                 <div class="glass-panel rounded-xl h-40 skeleton"></div>
                 <div class="glass-panel rounded-xl h-40 skeleton"></div>
             </div>
@@ -240,13 +250,9 @@
             { name: 'KMPH', url: 'https://kmph.com/rss', color: 'text-orange-400' }
         ];
 
-        // Robust Proxy list
         const PROXIES = [
-            // CodeTabs (Fastest/Reliable)
             url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            // AllOrigins (Fallback)
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            // CorsProxy (Last resort)
             url => `https://corsproxy.io/?${encodeURIComponent(url)}`
         ];
 
@@ -256,17 +262,13 @@
         let allArticles = [];
         let currentTab = 'fresno';
 
-        // --- State & Cache Management ---
-        
+        // --- Helpers ---
         function saveCache(articles) {
             try {
-                const cacheData = {
-                    timestamp: Date.now(),
-                    articles: articles
-                };
+                const cacheData = { timestamp: Date.now(), articles: articles };
                 localStorage.setItem('valley_pulse_news', JSON.stringify(cacheData));
                 document.getElementById('last-updated').textContent = 'Updated just now';
-            } catch (e) { console.error("Cache save failed", e); }
+            } catch (e) {}
         }
 
         function loadCache() {
@@ -274,16 +276,13 @@
                 const cached = localStorage.getItem('valley_pulse_news');
                 if (cached) {
                     const data = JSON.parse(cached);
-                    // Rehydrate dates
                     allArticles = data.articles.map(a => ({...a, pubDateObj: new Date(a.pubDateObj)}));
-                    
                     const minsAgo = Math.floor((Date.now() - data.timestamp) / 60000);
                     document.getElementById('last-updated').textContent = minsAgo < 60 ? `Updated ${minsAgo}m ago` : 'Updated a while ago';
-                    
                     renderNews();
                     return true;
                 }
-            } catch (e) { console.error("Cache load failed", e); }
+            } catch (e) {}
             return false;
         }
 
@@ -291,24 +290,32 @@
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
             const text = document.getElementById('toast-msg');
-            
             text.textContent = msg;
             icon.className = type === 'success' ? 'ph-fill ph-check-circle text-green-400' : 'ph-fill ph-warning-circle text-red-400';
-            
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // --- Weather Logic (Same as before) ---
+        // --- Weather & AQI Logic ---
+        
+        function getAQIStyle(aqi) {
+            if (aqi <= 50) return { text: 'Good', class: 'text-green-400' };
+            if (aqi <= 100) return { text: 'Moderate', class: 'text-yellow-400' };
+            if (aqi <= 150) return { text: 'Unhealthy (Sens.)', class: 'text-orange-400' };
+            if (aqi <= 200) return { text: 'Unhealthy', class: 'text-red-400' };
+            return { text: 'Hazardous', class: 'text-purple-400' };
+        }
+
         async function fetchWeather(key) {
             const loc = LOCATIONS[key];
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FLos_Angeles`;
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FLos_Angeles`;
+            const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${loc.lat}&longitude=${loc.lon}&current=us_aqi`;
 
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const current = data.current_weather;
-                const daily = data.daily;
+                const resW = await fetch(weatherUrl);
+                const dataW = await resW.json();
+                const current = dataW.current_weather;
+                const daily = dataW.daily;
 
                 document.getElementById(`temp-${key}`).textContent = `${Math.round(current.temperature)}°`;
                 document.getElementById(`icon-${key}`).innerHTML = getWeatherIcon(current.weathercode);
@@ -317,8 +324,24 @@
                     document.getElementById(`high-${key}`).textContent = `${Math.round(daily.temperature_2m_max[0])}°`;
                     document.getElementById(`low-${key}`).textContent = `${Math.round(daily.temperature_2m_min[0])}°`;
                 }
+
+                // AQI
+                try {
+                    const resA = await fetch(aqiUrl);
+                    const dataA = await resA.json();
+                    const aqi = dataA.current.us_aqi;
+                    const badge = document.getElementById(`aqi-badge-${key}`);
+                    const val = document.getElementById(`aqi-${key}`);
+                    
+                    const style = getAQIStyle(aqi);
+                    val.textContent = `${aqi} ${style.text}`;
+                    val.className = `text-[10px] font-bold ${style.class}`;
+                    badge.classList.remove('hidden');
+                } catch (aqiErr) { console.warn("AQI fail", aqiErr); }
+
             } catch (error) { console.error(error); }
         }
+
         function getWeatherIcon(code) {
             if (code === 0) return '<i class="ph-fill ph-sun text-yellow-400"></i>';
             if (code <= 3) return '<i class="ph-fill ph-cloud-sun text-yellow-200"></i>';
@@ -339,10 +362,9 @@
                 const proxyUrl = proxyFn(sourceUrl);
                 try {
                     const controller = new AbortController();
-                    const id = setTimeout(() => controller.abort(), 8000); // 8s timeout per proxy
+                    const id = setTimeout(() => controller.abort(), 8000);
                     const res = await fetch(proxyUrl, { signal: controller.signal });
                     clearTimeout(id);
-                    
                     if (!res.ok) throw new Error(`Status ${res.status}`);
                     const text = await res.text();
                     if (text.trim().startsWith('<')) return text;
@@ -377,38 +399,27 @@
                     const match = description.match(/<img[^>]+src="([^">]+)"/) || content.match(/<img[^>]+src="([^">]+)"/);
                     if (match) imageUrl = match[1];
                 }
-
-                // Date Parse
                 let d = new Date(pubDateStr);
                 if(isNaN(d.getTime())) d = new Date();
 
-                return {
-                    title, link, pubDateObj: d, imageUrl,
-                    sourceName: source.name, sourceColor: source.color, description
-                };
+                return { title, link, pubDateObj: d, imageUrl, sourceName: source.name, sourceColor: source.color, description };
             });
         }
 
         async function fetchNews() {
             const btnIcon = document.querySelector('#refresh-btn i');
             const statusText = document.getElementById('status-text');
-            
             statusText.textContent = "Updating...";
             btnIcon.classList.add('animate-spin');
 
-            // Parallel fetching
             const promises = NEWS_SOURCES.map(src => 
-                fetchWithFallback(src.url)
-                .then(xml => parseXMLFeed(xml, src))
-                .catch(e => [])
+                fetchWithFallback(src.url).then(xml => parseXMLFeed(xml, src)).catch(e => [])
             );
 
             try {
                 const results = await Promise.all(promises);
                 const flat = results.flat();
-                
                 if (flat.length > 0) {
-                    // Success
                     const seen = new Set();
                     allArticles = flat.filter(a => {
                         const k = a.title;
@@ -417,21 +428,17 @@
                         return true;
                     });
                     allArticles.sort((a, b) => b.pubDateObj - a.pubDateObj);
-                    
-                    saveCache(allArticles); // Persist
+                    saveCache(allArticles); 
                     renderNews();
                     showToast('Feed updated');
                 } else {
-                    // Failure (Empty)
                     if (allArticles.length === 0) throw new Error("No items");
                     showToast('No new stories', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                // If we have cache, don't show error screen, just toast
-                if(allArticles.length > 0) {
-                    showToast('Update failed', 'error');
-                } else {
+                if(allArticles.length > 0) showToast('Update failed', 'error');
+                else {
                     document.getElementById('news-container').innerHTML = '';
                     document.getElementById('news-error').classList.remove('hidden');
                 }
@@ -446,16 +453,8 @@
                 const text = (article.title + " " + (article.description || "")).toLowerCase();
                 const isTulare = TULARE_KEYWORDS.some(k => text.includes(k));
                 const isFresno = FRESNO_KEYWORDS.some(k => text.includes(k));
-
-                if (tab === 'tulare') {
-                    if (isTulare) return true;
-                    if (isFresno) return false; 
-                    return true; 
-                } else {
-                    if (isFresno) return true;
-                    if (isTulare) return false;
-                    return true; 
-                }
+                if (tab === 'tulare') return isTulare || !isFresno; 
+                else return isFresno || !isTulare;
             });
         }
 
@@ -463,10 +462,9 @@
             const container = document.getElementById('news-container');
             const emptyState = document.getElementById('empty-state');
             const errorDiv = document.getElementById('news-error');
-            
             errorDiv.classList.add('hidden');
+            
             const filtered = filterNews(allArticles, currentTab);
-
             container.innerHTML = '';
             if (filtered.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -488,12 +486,10 @@
                     const hue = (article.title.length * 7) % 360;
                     imgHtml = `<div class="w-full h-full flex items-center justify-center" style="background: linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue}, 40%, 10%))"><i class="ph-duotone ph-newspaper text-3xl text-white/20"></i></div>`;
                 }
-
                 const now = new Date();
                 const diffMins = Math.floor((now - article.pubDateObj) / 60000);
                 const diffHrs = Math.floor(diffMins / 60);
                 let timeString = diffMins < 60 ? `${diffMins}m` : diffHrs > 24 ? `${Math.floor(diffHrs/24)}d` : `${diffHrs}h`;
-
                 const txt = document.createElement('textarea');
                 txt.innerHTML = article.title;
                 const cleanTitle = txt.value;
@@ -519,7 +515,6 @@
             const indicator = document.getElementById('tab-indicator');
             const fresnoBtn = document.getElementById('tab-btn-fresno');
             const tulareBtn = document.getElementById('tab-btn-tulare');
-
             if (tab === 'fresno') {
                 indicator.style.transform = 'translateX(0)';
                 fresnoBtn.classList.replace('text-slate-400', 'text-white');
@@ -538,22 +533,14 @@
                 fetchWeather('visalia');
                 await fetchNews();
             } else {
-                // Initial load: Try cache first
                 const hasCache = loadCache();
                 fetchWeather('fresno');
                 fetchWeather('visalia');
-                
-                // If we have cache, fetch new data in background (user sees content immediately)
-                // If no cache, we MUST await fetchNews to show something
-                if(!hasCache) {
-                    await fetchNews();
-                } else {
-                    fetchNews(); // Background update
-                }
+                if(!hasCache) await fetchNews();
+                else fetchNews();
             }
         }
 
-        // Init
         refreshAll(false);
     </script>
 </body>
