@@ -23,11 +23,11 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
     <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-4 py-3 shadow-lg">
       <div className="flex justify-between items-center max-w-4xl mx-auto">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z"/>
-            </svg>
-          </div>
+          <img 
+            src="/apple-touch-icon.png" 
+            alt="Valley Pulse" 
+            className="w-8 h-8 rounded-lg shadow-lg"
+          />
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight leading-none">
               Valley Pulse
