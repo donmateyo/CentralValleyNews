@@ -23,11 +23,13 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
     <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-4 py-3 shadow-lg">
       <div className="flex justify-between items-center max-w-4xl mx-auto">
         <div className="flex items-center gap-2">
-          <img 
-            src="/apple-touch-icon.png" 
-            alt="Valley Pulse" 
-            className="w-10 h-10 rounded-[10px] shadow-lg object-contain"
-          />
+          <div className="w-10 h-10 flex-shrink-0 overflow-hidden rounded-[22%] shadow-lg">
+            <img 
+              src="/apple-touch-icon.png" 
+              alt="Valley Pulse" 
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight leading-none">
               Valley Pulse
