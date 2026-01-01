@@ -24,11 +24,11 @@ function decodeHtmlEntities(text: string): string {
 }
 
 // Generate a consistent placeholder image URL based on article content
-function getPlaceholderImage(article: Article): string {
+function getPlaceholderImage(title: string): string {
   // Create a hash from the title for consistent random image
   let hash = 0;
-  for (let i = 0; i < article.title.length; i++) {
-    const char = article.title.charCodeAt(i);
+  for (let i = 0; i < title.length; i++) {
+    const char = title.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
@@ -43,9 +43,10 @@ export function NewsCard({ article }: NewsCardProps) {
   const timeString = formatTimeAgo(article.pubDate);
   const cleanTitle = decodeHtmlEntities(article.title);
 
-  // Determine which image to show
-  const hasOriginalImage = article.imageUrl && !imageError;
-  const imageUrl = hasOriginalImage ? article.imageUrl : getPlaceholderImage(article);
+  // Determine which image to show - always have a valid string
+  const imageUrl: string = (!imageError && article.imageUrl) 
+    ? article.imageUrl 
+    : getPlaceholderImage(article.title);
 
   return (
     <a
