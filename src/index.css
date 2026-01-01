@@ -2,18 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
+
+/* Light mode (default) */
 :root {
-  color-scheme: dark;
+  --bg-primary: #faf8f0;
+  --bg-secondary: #f0ead6;
+  --bg-card: #ffffff;
+  --bg-header: #1a1a1a;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --accent: #cc0000;
+  --accent-dark: #990000;
+  --border: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode */
+.dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #252525;
+  --bg-card: #2a2a2a;
+  --bg-header: #0f0f0f;
+  --text-primary: #faf8f0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --accent: #cc0000;
+  --accent-dark: #990000;
+  --border: rgba(255, 255, 255, 0.1);
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Newspaper masthead font */
+.font-masthead {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 /* Hide scrollbar */
@@ -25,12 +56,16 @@ body {
   scrollbar-width: none;
 }
 
-/* Glass panel effect */
-.glass-panel {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Paper card style */
+.paper-card {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .paper-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Line clamp utility */
@@ -61,16 +96,16 @@ body {
   }
 
   ::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: var(--bg-secondary);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: var(--text-muted);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: var(--text-secondary);
   }
 }
 

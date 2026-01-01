@@ -7,6 +7,7 @@ interface HeaderProps {
 
 export function Header({ onRefresh, isRefreshing }: HeaderProps) {
   const [dateString, setDateString] = useState('');
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const date = new Date();
@@ -17,22 +18,50 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
         day: 'numeric'
       })
     );
+
+    // Check initial dark mode state
+    setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
 
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    if (newIsDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-4 py-3 shadow-lg">
-      <div className="flex justify-between items-center max-w-4xl mx-auto">
+    <header className="sticky top-0 z-50 bg-[--bg-header] border-b-4 border-[--accent] shadow-lg">
+      <div className="flex justify-between items-center max-w-4xl mx-auto px-4 py-3">
         <div className="flex items-center gap-3">
           <img 
             src="/apple-touch-icon.png" 
             alt="Valley Pulse" 
             className="w-10 h-10"
           />
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all"
+            aria-label="Toggle theme"
+          >
+            {isDark ? (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M120,40V32a8,8,0,0,1,16,0v8a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-8-8A8,8,0,0,0,50.34,61.66Zm0,116.68-8,8a8,8,0,0,0,11.32,11.32l8-8a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l8-8a8,8,0,0,0-11.32-11.32l-8,8A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l8,8a8,8,0,0,0,11.32-11.32ZM40,120H32a8,8,0,0,0,0,16h8a8,8,0,0,0,0-16Zm88,88a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-8A8,8,0,0,0,128,208Zm96-88h-8a8,8,0,0,0,0,16h8a8,8,0,0,0,0-16Z"/>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/>
+              </svg>
+            )}
+          </button>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight leading-none">
+            <h1 className="text-xl font-masthead font-bold text-white tracking-tight leading-none">
               Valley Pulse
             </h1>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-wider">
               {dateString}
             </p>
           </div>
@@ -40,7 +69,7 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
         <button
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="p-2 rounded-full bg-slate-800/50 hover:bg-white/10 active:scale-95 text-blue-400 border border-white/5 transition-all disabled:opacity-50"
+          className="p-2 rounded-full bg-[--accent] hover:bg-[--accent-dark] active:scale-95 text-white border border-white/10 transition-all disabled:opacity-50"
           aria-label="Refresh"
         >
           <svg
