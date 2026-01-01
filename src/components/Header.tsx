@@ -22,13 +22,20 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-4 py-3 shadow-lg">
       <div className="flex justify-between items-center max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-lg font-bold text-white tracking-tight leading-none">
-            Valley Pulse
-          </h1>
-          <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-            {dateString}
-          </p>
+        <div className="flex items-center gap-3">
+          <img 
+            src="/apple-touch-icon.png" 
+            alt="Valley Pulse" 
+            className="w-10 h-10"
+          />
+          <div>
+            <h1 className="text-lg font-bold text-white tracking-tight leading-none">
+              Valley Pulse
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+              {dateString}
+            </p>
+          </div>
         </div>
         <button
           onClick={onRefresh}
