@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Article } from '../types';
 
 interface NewsCardProps {
@@ -22,12 +23,29 @@ function decodeHtmlEntities(text: string): string {
   return textarea.value;
 }
 
+// Generate a consistent placeholder image URL based on article content
+function getPlaceholderImage(article: Article): string {
+  // Create a hash from the title for consistent random image
+  let hash = 0;
+  for (let i = 0; i < article.title.length; i++) {
+    const char = article.title.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  const seed = Math.abs(hash);
+
+  // Use picsum.photos with a seed for consistent images
+  return `https://picsum.photos/seed/${seed}/400/250`;
+}
+
 export function NewsCard({ article }: NewsCardProps) {
+  const [imageError, setImageError] = useState(false);
   const timeString = formatTimeAgo(article.pubDate);
   const cleanTitle = decodeHtmlEntities(article.title);
 
-  // Generate gradient color based on title
-  const hue = (article.title.length * 7) % 360;
+  // Determine which image to show
+  const hasOriginalImage = article.imageUrl && !imageError;
+  const imageUrl = hasOriginalImage ? article.imageUrl : getPlaceholderImage(article);
 
   return (
     <a
@@ -38,30 +56,17 @@ export function NewsCard({ article }: NewsCardProps) {
     >
       {/* Image */}
       <div className="h-28 w-full overflow-hidden bg-slate-800 relative">
-        {article.imageUrl ? (
-          <img
-            src={article.imageUrl}
-            alt=""
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
-            }}
-          />
-        ) : null}
-        <div
-          className={`${article.imageUrl ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}
-          style={{
-            background: `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue}, 40%, 10%))`
+        <img
+          src={imageUrl}
+          alt=""
+          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500"
+          loading="lazy"
+          onError={() => {
+            if (!imageError) {
+              setImageError(true);
+            }
           }}
-        >
-          <svg className="w-8 h-8 text-white/20" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z"/>
-          </svg>
-        </div>
+        />
 
         {/* Time Badge */}
         <div className="absolute top-1.5 left-1.5 bg-slate-900/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-white uppercase tracking-wide border border-white/10 shadow-sm">
