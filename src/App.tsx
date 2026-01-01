@@ -32,24 +32,24 @@ export default function App() {
   }, [refreshNews]);
 
   return (
-    <div className="min-h-screen flex flex-col pb-24 bg-[--bg-primary]">
+    <div className="min-h-screen flex flex-col pb-24">
       <Header onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
       <main className="flex-1 w-full max-w-4xl mx-auto p-3 space-y-5">
         {/* Weather Section */}
         <section>
           <div className="flex justify-between items-end mb-2 px-1">
-            <h2 className="text-xs font-masthead font-bold text-[--text-primary] uppercase tracking-wider">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Conditions
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <WeatherCard locationKey="fresno" />
-            <WeatherCard locationKey="visalia" />
+            <WeatherCard locationKey="fresno" accentColor="bg-blue-500/10" />
+            <WeatherCard locationKey="visalia" accentColor="bg-green-500/10" />
           </div>
           <div className="flex justify-end mt-1 px-1">
-            <span className="text-[9px] text-[--text-muted]">
-              Weather & AQI by Open-Meteo
+            <span className="text-[9px] text-slate-600">
+              Weather by NWS | AQI by AirNow
             </span>
           </div>
         </section>
@@ -71,24 +71,24 @@ export default function App() {
               <NewsCardSkeleton />
             </div>
           ) : error && articles.length === 0 ? (
-            <div className="text-center py-12 paper-card rounded-lg">
-              <svg className="w-8 h-8 text-[--text-muted] mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
+            <div className="text-center py-12 glass-panel rounded-xl">
+              <svg className="w-8 h-8 text-slate-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M168,144a12,12,0,1,1-12-12A12,12,0,0,1,168,144ZM100,132a12,12,0,1,0,12,12A12,12,0,0,0,100,132Zm128,12A100,100,0,1,1,128,44,100.11,100.11,0,0,1,228,144Zm-16,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,144ZM168,172a52,52,0,0,1-80,0,8,8,0,1,0-12.31,10.23,68,68,0,0,0,104.62,0A8,8,0,0,0,168,172Z"/>
               </svg>
-              <p className="text-[--text-secondary] text-xs">Unable to load news</p>
+              <p className="text-slate-400 text-xs">Unable to load news</p>
               <button
                 onClick={handleRefresh}
-                className="mt-3 px-4 py-2 bg-[--accent] text-white text-xs font-bold rounded-lg hover:bg-[--accent-dark] active:scale-95"
+                className="mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 active:scale-95"
               >
                 Retry
               </button>
             </div>
           ) : articles.length === 0 ? (
-            <div className="text-center py-12 paper-card rounded-lg">
-              <svg className="w-8 h-8 text-[--text-muted] mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
+            <div className="text-center py-12 glass-panel rounded-xl">
+              <svg className="w-8 h-8 text-slate-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z"/>
               </svg>
-              <p className="text-[--text-secondary] text-xs">No headlines found</p>
+              <p className="text-slate-400 text-xs">No headlines found</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 min-h-[200px]">

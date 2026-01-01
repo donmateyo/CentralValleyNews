@@ -5,22 +5,22 @@ export const LOCATIONS: Record<LocationKey, Location> = {
     name: 'Fresno',
     county: 'Fresno Co.',
     lat: 36.7378,
-    lon: -119.7871
+    lon: -119.7871,
+    zip: '93721'
   },
   visalia: {
     name: 'Visalia',
     county: 'Tulare Co.',
     lat: 36.3302,
-    lon: -119.2921
+    lon: -119.2921,
+    zip: '93291'
   }
 };
 
 export const NEWS_SOURCES: NewsSource[] = [
   { name: 'ABC30', url: 'https://abc30.com/feed/', colorClass: 'text-blue-400' },
   { name: 'KSEE24', url: 'https://www.yourcentralvalley.com/feed/', colorClass: 'text-indigo-400' },
-  { name: 'KMPH', url: 'https://kmph.com/rss', colorClass: 'text-orange-400' },
-  { name: 'GV Wire', url: 'https://gvwire.com/feed/', colorClass: 'text-emerald-400' },
-  { name: 'KVPR', url: 'https://www.kvpr.org/local-news/rss.xml', colorClass: 'text-purple-400' }
+  { name: 'GV Wire', url: 'https://gvwire.com/feed/', colorClass: 'text-emerald-400' }
 ];
 
 export const CORS_PROXIES = [
@@ -32,15 +32,12 @@ export const CORS_PROXIES = [
 export const TULARE_KEYWORDS = [
   'visalia', 'tulare', 'porterville', 'hanford', 'lemoore', 'dinuba',
   'exeter', 'kingsburg', 'strathmore', 'lindsay', 'woodlake', 'south valley',
-  'earlimart', 'pixley', 'tulare county', 'cutler', 'orosi', 'farmersville',
-  'ivanhoe', 'goshen', 'tipton', 'terra bella'
+  'earlimart', 'pixley'
 ];
 
 export const FRESNO_KEYWORDS = [
   'fresno', 'clovis', 'madera', 'sanger', 'selma', 'reedley',
-  'fowler', 'kerman', 'coalinga', 'firebaugh', 'mendota', 'shaver',
-  'fresno county', 'parlier', 'orange cove', 'san joaquin', 'auberry',
-  'friant', 'biola', 'caruthers', 'del rey', 'easton', 'malaga'
+  'fowler', 'kerman', 'coalinga', 'firebaugh', 'mendota', 'shaver'
 ];
 
 export const WEATHER_CODES: Record<number, { description: string; icon: string }> = {
@@ -67,5 +64,4 @@ export const WEATHER_CODES: Record<number, { description: string; icon: string }
   99: { description: 'Severe Storm', icon: 'cloud-lightning' }
 };
 
-export const CACHE_KEY = 'valley_pulse_news';
-export const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+// Note: localStorage caching removed - not supported in Poe iframe

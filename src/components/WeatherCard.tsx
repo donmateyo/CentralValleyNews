@@ -4,6 +4,7 @@ import { useWeather } from '../hooks/useWeather';
 
 interface WeatherCardProps {
   locationKey: LocationKey;
+  accentColor: string;
 }
 
 function WeatherIcon({ code, className }: { code: number; className?: string }) {
@@ -50,22 +51,22 @@ function WeatherIcon({ code, className }: { code: number; className?: string }) 
   return icons[iconName] || icons.cloud;
 }
 
-export function WeatherCard({ locationKey }: WeatherCardProps) {
+export function WeatherCard({ locationKey, accentColor }: WeatherCardProps) {
   const location = LOCATIONS[locationKey];
-  const { weather, aqi, loading, error } = useWeather(locationKey);
+  const { weather, aqi, sun, pollen, loading, error } = useWeather(locationKey);
 
   return (
-    <div className="paper-card rounded-lg p-3 relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+    <div className="glass-panel rounded-xl p-3 relative overflow-hidden flex flex-col justify-between min-h-[140px]">
       {/* Header */}
       <div className="flex justify-between items-start relative z-10">
         <div>
-          <h3 className="text-sm font-bold text-[--text-primary]">{location.name}</h3>
-          <p className="text-[10px] text-[--text-secondary]">{location.county}</p>
+          <h3 className="text-sm font-bold text-white">{location.name}</h3>
+          <p className="text-[10px] text-slate-400">{location.county}</p>
         </div>
         {/* AQI Badge */}
         {aqi && (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[--bg-header]">
-            <span className="text-[9px] font-bold text-gray-300">AQI</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-900/40 border border-white/5 backdrop-blur-sm">
+            <span className="text-[9px] font-bold text-slate-400">AQI</span>
             <span className={`text-[10px] font-bold ${aqi.colorClass}`}>
               {aqi.value} {aqi.label}
             </span>
@@ -77,29 +78,29 @@ export function WeatherCard({ locationKey }: WeatherCardProps) {
       <div className="mt-2 flex items-center gap-2 relative z-10">
         {loading ? (
           <>
-            <div className="text-3xl text-[--text-muted]">
+            <div className="text-3xl text-slate-500">
               <svg className="w-8 h-8 animate-spin" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,176A72,72,0,1,1,200,128,72.08,72.08,0,0,1,128,200Z" opacity="0.2"/>
                 <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,16a88.1,88.1,0,0,1,88,88,8,8,0,0,1-16,0,72,72,0,0,0-72-72,8,8,0,0,1,0-16Z"/>
               </svg>
             </div>
             <div>
-              <div className="text-2xl font-bold text-[--text-muted] leading-none">--°</div>
-              <div className="text-[10px] text-[--text-muted] mt-1">Loading</div>
+              <div className="text-2xl font-bold text-white/50 leading-none">--°</div>
+              <div className="text-[10px] text-slate-500 mt-1">Loading</div>
             </div>
           </>
         ) : error ? (
-          <div className="text-[10px] text-[--accent]">{error}</div>
+          <div className="text-[10px] text-red-400">{error}</div>
         ) : weather ? (
           <>
-            <div className="text-3xl text-[--accent]">
+            <div className="text-3xl text-yellow-400">
               <WeatherIcon code={weather.weatherCode} className="w-8 h-8" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-[--text-primary] leading-none">
+              <div className="text-2xl font-bold text-white leading-none">
                 {weather.temperature}°
               </div>
-              <div className="text-[10px] text-[--text-secondary] mt-1">
+              <div className="text-[10px] text-slate-300 mt-1">
                 {weather.description}
               </div>
             </div>
@@ -107,18 +108,42 @@ export function WeatherCard({ locationKey }: WeatherCardProps) {
         ) : null}
       </div>
 
-      {/* High/Low */}
-      <div className="mt-2 pt-2 border-t border-[--border] flex justify-between text-[10px] text-[--text-secondary] relative z-10 font-medium">
-        <span>
-          H:<span className="text-[--text-primary] ml-0.5 font-bold">{weather?.high ?? '--'}°</span>
-        </span>
-        <span>
-          L:<span className="text-[--text-primary] ml-0.5 font-bold">{weather?.low ?? '--'}°</span>
-        </span>
+      {/* Bottom Row: H/L, Pollen, Sunrise/Sunset */}
+      <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400 relative z-10 font-medium">
+        {/* Left: High/Low */}
+        <div className="flex gap-2">
+          <span>
+            H:<span className="text-white ml-0.5">{weather?.high ?? '--'}°</span>
+          </span>
+          <span>
+            L:<span className="text-white ml-0.5">{weather?.low ?? '--'}°</span>
+          </span>
+        </div>
+
+        {/* Center: Pollen */}
+        {pollen && (
+          <span className="text-slate-400">
+            Pollen: <span className={pollen.colorClass}>{pollen.level}</span>
+          </span>
+        )}
+
+        {/* Right: Sunrise/Sunset stacked */}
+        {sun && (
+          <div className="flex flex-col items-end gap-0.5 text-slate-400 font-mono text-[9px]">
+            <span className="flex items-center gap-1">
+              <span>🌅</span>
+              <span className="w-14 text-right">{sun.sunrise}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span>🌇</span>
+              <span className="w-14 text-right">{sun.sunset}</span>
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Red accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-[--accent]" />
+      {/* Background Accent */}
+      <div className={`absolute -right-4 -top-4 w-20 h-20 ${accentColor} rounded-full blur-xl`} />
     </div>
   );
 }

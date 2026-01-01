@@ -1,21 +1,68 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { WeatherState, LocationKey } from '../types';
+import type { WeatherState, LocationKey, SunData, PollenData } from '../types';
 import { LOCATIONS, WEATHER_CODES } from '../config';
 
-interface OpenMeteoWeatherResponse {
-  current_weather: {
-    temperature: number;
-    weathercode: number;
-  };
-  daily: {
-    temperature_2m_max: number[];
-    temperature_2m_min: number[];
+const AIRNOW_API_KEY = '1EF0DDE4-CA90-44AF-897B-379AEA29021E';
+
+interface NWSPointsResponse {
+  properties: {
+    forecast: string;
+    forecastHourly: string;
+    observationStations: string;
   };
 }
 
-interface OpenMeteoAQIResponse {
+interface NWSStationsResponse {
+  features: Array<{
+    properties: {
+      stationIdentifier: string;
+    };
+  }>;
+}
+
+interface NWSObservationResponse {
+  properties: {
+    temperature: {
+      value: number | null;
+      unitCode: string;
+    };
+    textDescription: string;
+  };
+}
+
+interface NWSForecastResponse {
+  properties: {
+    periods: Array<{
+      temperature: number;
+      temperatureUnit: string;
+      shortForecast: string;
+      isDaytime: boolean;
+    }>;
+  };
+}
+
+interface AirNowResponse {
+  DateObserved: string;
+  HourObserved: number;
+  AQI: number;
+  Category: {
+    Number: number;
+    Name: string;
+  };
+}
+
+interface OpenMeteoSunResponse {
+  daily: {
+    sunrise: string[];
+    sunset: string[];
+  };
+}
+
+interface OpenMeteoPollenResponse {
   current: {
-    us_aqi: number;
+    grass_pollen: number;
+    birch_pollen: number;
+    ragweed_pollen: number;
   };
 }
 
@@ -27,14 +74,48 @@ function getAQIInfo(aqi: number): { label: string; colorClass: string } {
   return { label: 'Hazardous', colorClass: 'text-purple-400' };
 }
 
-function getWeatherDescription(code: number): string {
-  return WEATHER_CODES[code]?.description || 'Cloudy';
+function getPollenLevel(grass: number, birch: number, ragweed: number): PollenData {
+  const max = Math.max(grass, birch, ragweed);
+  if (max <= 10) return { level: 'Low', colorClass: 'text-green-400' };
+  if (max <= 50) return { level: 'Moderate', colorClass: 'text-yellow-400' };
+  if (max <= 100) return { level: 'High', colorClass: 'text-orange-400' };
+  return { level: 'Very High', colorClass: 'text-red-400' };
+}
+
+function mapNWSToWeatherCode(description: string): number {
+  const text = description.toLowerCase();
+  if (text.includes('thunder')) return 95;
+  if (text.includes('snow') || text.includes('flurr')) return 71;
+  if (text.includes('rain') || text.includes('shower')) return 61;
+  if (text.includes('drizzle')) return 51;
+  if (text.includes('fog') || text.includes('mist')) return 45;
+  if (text.includes('overcast')) return 3;
+  if (text.includes('cloudy') || text.includes('cloud')) return 2;
+  if (text.includes('partly')) return 2;
+  if (text.includes('mostly sunny') || text.includes('mostly clear')) return 1;
+  if (text.includes('sunny') || text.includes('clear') || text.includes('fair')) return 0;
+  return 3;
+}
+
+function celsiusToFahrenheit(celsius: number): number {
+  return Math.round((celsius * 9/5) + 32);
+}
+
+function formatTime(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 export function useWeather(locationKey: LocationKey) {
   const [state, setState] = useState<WeatherState>({
     weather: null,
     aqi: null,
+    sun: null,
+    pollen: null,
     loading: true,
     error: null
   });
@@ -43,48 +124,159 @@ export function useWeather(locationKey: LocationKey) {
     const location = LOCATIONS[locationKey];
     setState(prev => ({ ...prev, loading: true, error: null }));
 
+    const headers = { 'User-Agent': 'ValleyPulse/1.0 (weather app)' };
+
     try {
-      // Fetch weather
-      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FLos_Angeles`;
+      let weatherData = null;
 
-      const weatherRes = await fetch(weatherUrl);
-      if (!weatherRes.ok) throw new Error('Weather fetch failed');
+      try {
+        const pointsRes = await fetch(
+          `https://api.weather.gov/points/${location.lat},${location.lon}`,
+          { headers }
+        );
 
-      const weatherData: OpenMeteoWeatherResponse = await weatherRes.json();
-      const current = weatherData.current_weather;
-      const daily = weatherData.daily;
+        if (pointsRes.ok) {
+          const pointsData: NWSPointsResponse = await pointsRes.json();
 
-      // Fetch AQI
-      const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.lat}&longitude=${location.lon}&current=us_aqi`;
+          let currentTemp: number | null = null;
+          let currentDescription = '';
 
+          try {
+            const stationsRes = await fetch(pointsData.properties.observationStations, { headers });
+            if (stationsRes.ok) {
+              const stationsData: NWSStationsResponse = await stationsRes.json();
+              if (stationsData.features && stationsData.features.length > 0) {
+                const stationId = stationsData.features[0].properties.stationIdentifier;
+
+                const obsRes = await fetch(
+                  `https://api.weather.gov/stations/${stationId}/observations/latest`,
+                  { headers }
+                );
+
+                if (obsRes.ok) {
+                  const obsData: NWSObservationResponse = await obsRes.json();
+
+                  if (obsData.properties.temperature.value !== null) {
+                    currentTemp = celsiusToFahrenheit(obsData.properties.temperature.value);
+                  }
+                  currentDescription = obsData.properties.textDescription || '';
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('NWS observation fetch failed:', e);
+          }
+
+          let high: number | null = null;
+          let low: number | null = null;
+
+          try {
+            const forecastRes = await fetch(pointsData.properties.forecast, { headers });
+            if (forecastRes.ok) {
+              const forecastData: NWSForecastResponse = await forecastRes.json();
+              const periods = forecastData.properties.periods;
+
+              const dayPeriod = periods.find(p => p.isDaytime);
+              const nightPeriod = periods.find(p => !p.isDaytime);
+
+              high = dayPeriod?.temperature ?? null;
+              low = nightPeriod?.temperature ?? null;
+
+              if (currentTemp === null && periods.length > 0) {
+                currentTemp = periods[0].temperature;
+                currentDescription = periods[0].shortForecast;
+              }
+            }
+          } catch (e) {
+            console.warn('NWS forecast fetch failed:', e);
+          }
+
+          if (currentTemp !== null) {
+            weatherData = {
+              temperature: currentTemp,
+              weatherCode: mapNWSToWeatherCode(currentDescription),
+              description: currentDescription,
+              high: high ?? currentTemp,
+              low: low ?? currentTemp - 15
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('NWS fetch failed:', e);
+      }
+
+      // Fetch AQI from AirNow
       let aqiData = null;
       try {
-        const aqiRes = await fetch(aqiUrl);
+        // Use zip code for more accurate local AQI
+        const aqiRes = await fetch(
+          `https://www.airnowapi.org/aq/observation/zipCode/current/?format=application/json&zipCode=${location.zip}&API_KEY=${AIRNOW_API_KEY}`
+        );
         if (aqiRes.ok) {
-          const aqiJson: OpenMeteoAQIResponse = await aqiRes.json();
-          const aqiValue = aqiJson.current.us_aqi;
-          const aqiInfo = getAQIInfo(aqiValue);
-          aqiData = {
-            value: aqiValue,
-            label: aqiInfo.label,
-            colorClass: aqiInfo.colorClass
+          const aqiJson: AirNowResponse[] = await aqiRes.json();
+          if (aqiJson && aqiJson.length > 0) {
+            // Find the highest AQI among all pollutants (this is what AirNow website shows)
+            const highest = aqiJson.reduce((max, current) => {
+              if (current.AQI !== undefined && current.AQI > (max?.AQI ?? -1)) {
+                return current;
+              }
+              return max;
+            }, aqiJson[0]);
+
+            if (highest && highest.AQI !== undefined) {
+              const aqiValue = highest.AQI;
+              const label = highest.Category?.Name || getAQIInfo(aqiValue).label;
+              const { colorClass } = getAQIInfo(aqiValue);
+              aqiData = { value: aqiValue, label, colorClass };
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('AirNow fetch failed:', e);
+      }
+
+      // Fetch sunrise/sunset from Open-Meteo
+      let sunData: SunData | null = null;
+      try {
+        const sunRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&daily=sunrise,sunset&timezone=America%2FLos_Angeles`
+        );
+        if (sunRes.ok) {
+          const sunJson: OpenMeteoSunResponse = await sunRes.json();
+          sunData = {
+            sunrise: formatTime(sunJson.daily.sunrise[0]),
+            sunset: formatTime(sunJson.daily.sunset[0])
           };
         }
       } catch (e) {
-        console.warn('AQI fetch failed:', e);
+        console.warn('Sunrise/sunset fetch failed:', e);
+      }
+
+      // Fetch pollen from Open-Meteo
+      let pollenData: PollenData | null = null;
+      try {
+        const pollenRes = await fetch(
+          `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.lat}&longitude=${location.lon}&current=grass_pollen,birch_pollen,ragweed_pollen`
+        );
+        if (pollenRes.ok) {
+          const pollenJson: OpenMeteoPollenResponse = await pollenRes.json();
+          pollenData = getPollenLevel(
+            pollenJson.current.grass_pollen || 0,
+            pollenJson.current.birch_pollen || 0,
+            pollenJson.current.ragweed_pollen || 0
+          );
+        }
+      } catch (e) {
+        console.warn('Pollen fetch failed:', e);
       }
 
       setState({
-        weather: {
-          temperature: Math.round(current.temperature),
-          weatherCode: current.weathercode,
-          description: getWeatherDescription(current.weathercode),
-          high: Math.round(daily.temperature_2m_max[0]),
-          low: Math.round(daily.temperature_2m_min[0])
-        },
+        weather: weatherData,
         aqi: aqiData,
+        sun: sunData,
+        pollen: pollenData,
         loading: false,
-        error: null
+        error: weatherData ? null : 'Weather unavailable'
       });
     } catch (error) {
       console.error('Weather error:', error);

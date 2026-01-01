@@ -4,6 +4,7 @@ export interface Location {
   county: string;
   lat: number;
   lon: number;
+  zip: string;
 }
 
 export type LocationKey = 'fresno' | 'visalia';
@@ -23,9 +24,21 @@ export interface AQIData {
   colorClass: string;
 }
 
+export interface SunData {
+  sunrise: string;
+  sunset: string;
+}
+
+export interface PollenData {
+  level: string;
+  colorClass: string;
+}
+
 export interface WeatherState {
   weather: WeatherData | null;
   aqi: AQIData | null;
+  sun: SunData | null;
+  pollen: PollenData | null;
   loading: boolean;
   error: string | null;
 }
@@ -50,8 +63,4 @@ export interface Article {
 
 export type CountyTab = 'fresno' | 'tulare';
 
-// Cache types
-export interface NewsCache {
-  timestamp: number;
-  articles: Article[];
-}
+// Note: NewsCache removed - localStorage not supported in Poe iframe
