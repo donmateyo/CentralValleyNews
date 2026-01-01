@@ -26,7 +26,7 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
           <img 
             src="/apple-touch-icon.png" 
             alt="Valley Pulse" 
-            className="w-8 h-8 rounded-lg shadow-lg"
+            className="w-10 h-10 rounded-[10px] shadow-lg object-contain"
           />
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight leading-none">
