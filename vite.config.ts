@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['icon.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Valley Pulse',
         short_name: 'Valley Pulse',
@@ -17,17 +17,17 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png'
+          },
+          {
+            src: 'apple-touch-icon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
+            src: 'apple-touch-icon.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
@@ -44,7 +44,7 @@ export default defineConfig({
               cacheName: 'weather-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 30 // 30 minutes
+                maxAgeSeconds: 60 * 30
               }
             }
           },
