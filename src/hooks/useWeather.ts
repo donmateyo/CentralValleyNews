@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { WeatherState, LocationKey, SunData, PollenData } from '../types';
-import { LOCATIONS, WEATHER_CODES } from '../config';
+import { LOCATIONS } from '../config';
 
 const AIRNOW_API_KEY = '1EF0DDE4-CA90-44AF-897B-379AEA29021E';
 
@@ -205,17 +205,14 @@ export function useWeather(locationKey: LocationKey) {
         console.warn('NWS fetch failed:', e);
       }
 
-      // Fetch AQI from AirNow
       let aqiData = null;
       try {
-        // Use zip code for more accurate local AQI
         const aqiRes = await fetch(
           `https://www.airnowapi.org/aq/observation/zipCode/current/?format=application/json&zipCode=${location.zip}&API_KEY=${AIRNOW_API_KEY}`
         );
         if (aqiRes.ok) {
           const aqiJson: AirNowResponse[] = await aqiRes.json();
           if (aqiJson && aqiJson.length > 0) {
-            // Find the highest AQI among all pollutants (this is what AirNow website shows)
             const highest = aqiJson.reduce((max, current) => {
               if (current.AQI !== undefined && current.AQI > (max?.AQI ?? -1)) {
                 return current;
@@ -235,7 +232,6 @@ export function useWeather(locationKey: LocationKey) {
         console.warn('AirNow fetch failed:', e);
       }
 
-      // Fetch sunrise/sunset from Open-Meteo
       let sunData: SunData | null = null;
       try {
         const sunRes = await fetch(
@@ -252,7 +248,6 @@ export function useWeather(locationKey: LocationKey) {
         console.warn('Sunrise/sunset fetch failed:', e);
       }
 
-      // Fetch pollen from Open-Meteo
       let pollenData: PollenData | null = null;
       try {
         const pollenRes = await fetch(
