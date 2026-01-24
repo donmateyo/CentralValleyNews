@@ -1,10 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Article, CountyTab, NewsSource } from '../types';
 import { NEWS_SOURCES, CORS_PROXIES, TULARE_KEYWORDS, FRESNO_KEYWORDS } from '../config';
 
 // Generate unique ID for articles
 function generateId(title: string, source: string): string {
   return `${source}-${title.slice(0, 50)}`.replace(/\s+/g, '-').toLowerCase();
+}
+
+// Small delay helper (with optional jitter)
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Fetch with fallback through multiple CORS proxies
@@ -15,7 +20,7 @@ async function fetchWithFallback(sourceUrl: string): Promise<string> {
     const proxyUrl = proxyFn(bustedUrl);
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       const res = await fetch(proxyUrl, {
         signal: controller.signal,
@@ -204,9 +209,16 @@ export function useNews() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentTab, setCurrentTab] = useState<CountyTab>('fresno');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [fetchTimestamp, setFetchTimestamp] = useState<number>(0);
+
+  const latestRequestId = useRef(0);
+  const articlesRef = useRef<Article[]>([]);
+  useEffect(() => {
+    articlesRef.current = articles;
+  }, [articles]);
 
   const updateLastUpdatedText = useCallback((timestamp: number) => {
     const minsAgo = Math.floor((Date.now() - timestamp) / 60000);
@@ -229,66 +241,96 @@ export function useNews() {
   }, [fetchTimestamp, updateLastUpdatedText]);
 
   const fetchNews = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    setError(null);
+    const requestId = ++latestRequestId.current;
+    const safeSet = <T,>(setter: (v: T) => void, value: T) => {
+      if (latestRequestId.current === requestId) setter(value);
+    };
 
-    const promises = NEWS_SOURCES.map(source =>
-      fetchWithFallback(source.url)
-        .then(xml => {
-          const parsed = parseXMLFeed(xml, source);
-          console.log(`${source.name}: fetched ${parsed.length} articles`);
-          return parsed;
-        })
-        .catch((e) => {
-          console.warn(`${source.name} failed:`, e);
-          return [] as Article[];
-        })
-    );
+    const hasData = articlesRef.current.length > 0;
 
-    try {
-      const results = await Promise.all(promises);
-      const allArticles = results.flat();
-
-      console.log(`Total articles fetched: ${allArticles.length}`);
-
-      if (allArticles.length > 0) {
-        // Filter to LOCAL news only
-        const localArticles = allArticles.filter(isLocalArticle);
-        console.log(`Local articles: ${localArticles.length}`);
-
-        // Remove duplicates by title similarity
-        const seen = new Set<string>();
-        const uniqueArticles = localArticles.filter(a => {
-          // Normalize title for deduplication
-          const normalizedTitle = a.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
-          if (seen.has(normalizedTitle)) return false;
-          seen.add(normalizedTitle);
-          return true;
-        });
-
-        // Sort by date (newest first)
-        uniqueArticles.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
-
-        setArticles(uniqueArticles);
-        setFetchTimestamp(Date.now());
-        updateLastUpdatedText(Date.now());
-      } else {
-        setError('Unable to load news');
-      }
-    } catch (e) {
-      console.error('News fetch error:', e);
-      if (articles.length === 0) {
-        setError('Unable to load news');
-      }
-    } finally {
-      setLoading(false);
+    if (showLoading && !hasData) {
+      safeSet(setLoading, true);
+      safeSet(setRefreshing, false);
+    } else {
+      safeSet(setLoading, false);
+      safeSet(setRefreshing, true);
     }
-  }, [articles.length, updateLastUpdatedText]);
+
+    safeSet(setError, null);
+
+    const MAX_RETRIES = 2; // total attempts = 3
+    const BASE_DELAY = 800;
+
+    let success = false;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const results = await Promise.all(
+          NEWS_SOURCES.map(async (source) => {
+            try {
+              const xml = await fetchWithFallback(source.url);
+              const parsed = parseXMLFeed(xml, source);
+              return { source, articles: parsed, ok: true as const };
+            } catch (e) {
+              console.warn(`${source.name} failed:`, e);
+              return { source, articles: [] as Article[], ok: false as const };
+            }
+          })
+        );
+
+        const allArticles = results.flatMap(r => r.articles);
+
+        if (allArticles.length > 0) {
+          // Filter to LOCAL news only
+          const localArticles = allArticles.filter(isLocalArticle);
+
+          // Remove duplicates by title similarity
+          const seen = new Set<string>();
+          const uniqueArticles = localArticles.filter(a => {
+            const normalizedTitle = a.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+            if (seen.has(normalizedTitle)) return false;
+            seen.add(normalizedTitle);
+            return true;
+          });
+
+          // Sort by date (newest first)
+          uniqueArticles.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+
+          safeSet(setArticles, uniqueArticles);
+          const now = Date.now();
+          safeSet(setFetchTimestamp, now);
+          updateLastUpdatedText(now);
+          safeSet(setError, null);
+          success = true;
+          break;
+        }
+      } catch (e) {
+        console.error('News fetch error:', e);
+      }
+
+      if (attempt < MAX_RETRIES) {
+        const jitter = Math.floor(Math.random() * 300);
+        await delay(BASE_DELAY * Math.pow(2, attempt) + jitter);
+      }
+    }
+
+    if (!success) {
+      // If we already have articles, keep them and avoid surfacing an error.
+      if (articlesRef.current.length === 0) {
+        safeSet(setError, 'Unable to load news');
+      } else {
+        safeSet(setError, null);
+      }
+    }
+
+    safeSet(setLoading, false);
+    safeSet(setRefreshing, false);
+  }, [updateLastUpdatedText]);
 
   // Initial load
   useEffect(() => {
     fetchNews(true);
-  }, []);
+  }, [fetchNews]);
 
   const filteredArticles = filterByCounty(articles, currentTab)
     .slice()
@@ -300,6 +342,7 @@ export function useNews() {
     currentTab,
     setCurrentTab,
     loading,
+    refreshing,
     error,
     lastUpdated,
     refresh: () => fetchNews(true)

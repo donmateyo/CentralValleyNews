@@ -100,6 +100,15 @@ const CATEGORY_DEFS: Array<{
   }
 ];
 
+const REFRESH_GRADIENTS = [
+  'vp-gradient--blue',
+  'vp-gradient--indigo',
+  'vp-gradient--amber',
+  'vp-gradient--emerald',
+  'vp-gradient--violet',
+  'vp-gradient--slate'
+];
+
 function normalizeText(article: Article): string {
   return `${article.title} ${article.description}`.toLowerCase();
 }
@@ -137,6 +146,7 @@ export default function App() {
     currentTab,
     setCurrentTab,
     loading,
+    refreshing,
     error,
     lastUpdated,
     refresh: refreshNews
@@ -235,6 +245,70 @@ export default function App() {
         }
         .vp-disclosure__panel-inner { margin-top: 1rem; }
 
+        .vp-refreshing {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          margin: 1rem 0 0.5rem;
+          color: inherit;
+          opacity: 0.9;
+          animation: vp-fade 1.4s ease-in-out infinite;
+        }
+        .vp-refreshing__spinner {
+          width: 1.25rem;
+          height: 1.25rem;
+          border-radius: 9999px;
+          border: 2px solid currentColor;
+          border-top-color: transparent;
+          animation: vp-spin 0.9s linear infinite;
+        }
+        .vp-refresh-row {
+          margin-top: 1rem;
+          opacity: 0.8;
+        }
+        .vp-refresh-card {
+          position: relative;
+          overflow: hidden;
+          border-radius: 1rem;
+        }
+        .vp-refresh-tone__overlay {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          opacity: 0.18;
+          pointer-events: none;
+        }
+        .vp-refresh-row .vp-card--skeleton {
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
+          background: transparent;
+        }
+        .vp-refresh-row .vp-card--skeleton::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.08) 50%,
+            rgba(255,255,255,0) 100%
+          );
+          animation: vp-shimmer 1.6s ease-in-out infinite;
+        }
+
+        @keyframes vp-spin { to { transform: rotate(360deg); } }
+        @keyframes vp-fade {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 1; }
+        }
+        @keyframes vp-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
         @media (min-width: 1024px) {
           .vp-mobile-weather { display: none; }
         }
@@ -243,7 +317,10 @@ export default function App() {
         }
         @media (prefers-reduced-motion: reduce) {
           .vp-disclosure__icon,
-          .vp-disclosure__panel { transition: none; }
+          .vp-disclosure__panel,
+          .vp-refreshing,
+          .vp-refreshing__spinner,
+          .vp-refresh-row .vp-card--skeleton::after { transition: none; animation: none; }
         }
       `}</style>
 
@@ -384,6 +461,30 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+
+                {loading && articles.length === 0 && (
+                  <div className="vp-refreshing" role="status" aria-live="polite">
+                    <span className="vp-refreshing__spinner" aria-hidden="true" />
+                    <span className="vp-meta">Loading latest headlines…</span>
+                  </div>
+                )}
+
+                {refreshing && !loading && (
+                  <>
+                    <div className="vp-refreshing" role="status" aria-live="polite">
+                      <span className="vp-refreshing__spinner" aria-hidden="true" />
+                      <span className="vp-meta">Refreshing…</span>
+                    </div>
+                    <div className="vp-grid vp-refresh-row" aria-hidden="true">
+                      {REFRESH_GRADIENTS.slice(0, 3).map((grad) => (
+                        <div key={grad} className="vp-refresh-card">
+                          <div className={`vp-refresh-tone__overlay ${grad}`} />
+                          <NewsCardSkeleton />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
 
                 {loading && articles.length === 0 ? (
                   <div className="vp-grid">

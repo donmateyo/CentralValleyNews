@@ -32,6 +32,11 @@
   --step-2: clamp(1.25rem, 1.1rem + 0.7vw, 1.6rem);
   --step-3: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem);
   --step-4: clamp(2rem, 1.6rem + 1.8vw, 2.8rem);
+
+  /* Skeleton colors (light mode) */
+  --skeleton-1: rgba(0, 0, 0, 0.08);
+  --skeleton-2: rgba(0, 0, 0, 0.02);
+  --skeleton-3: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -49,6 +54,11 @@
 
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.45);
+
+  /* Skeleton colors (dark mode) */
+  --skeleton-1: rgba(255, 255, 255, 0.10);
+  --skeleton-2: rgba(255, 255, 255, 0.04);
+  --skeleton-3: rgba(255, 255, 255, 0.10);
 }
 
 html {
@@ -726,12 +736,14 @@ body {
    ========================================================= */
 
 .vp-skeleton {
-  background: linear-gradient(90deg, rgba(0,0,0,0.08), rgba(0,0,0,0.02), rgba(0,0,0,0.08));
+  background: linear-gradient(90deg, var(--skeleton-1), var(--skeleton-2), var(--skeleton-3));
   animation: vp-pulse 1.6s ease-in-out infinite;
+  border-radius: 0.6rem;
 }
 
 .vp-skeleton--media {
   height: 9rem;
+  border-radius: 0;
 }
 
 .vp-skeleton--line {
