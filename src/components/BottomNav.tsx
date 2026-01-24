@@ -13,9 +13,6 @@ export function BottomNav() {
           <a href="https://tularecounty.ca.gov/" target="_blank" rel="noopener noreferrer">
             Tulare County
           </a>
-          <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
-            Open‑Meteo
-          </a>
         </nav>
 
         <button className="vp-footer__top" onClick={scrollToTop}>

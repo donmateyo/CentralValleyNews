@@ -18,9 +18,9 @@ export const LOCATIONS: Record<LocationKey, Location> = {
 };
 
 export const NEWS_SOURCES: NewsSource[] = [
-  { name: 'ABC30', url: 'https://abc30. com/feed/', colorClass: 'text-blue-400' },
-  { name: 'KSEE24', url: 'https://www.yourcentralvalley. com/feed/', colorClass: 'text-indigo-400' },
-  { name: 'GV Wire', url: 'https://gvwire. com/feed/', colorClass: 'text-emerald-400' }
+  { name: 'ABC30', url: 'https://abc30.com/feed/', colorClass: 'text-blue-400' },
+  { name: 'KSEE24', url: 'https://www.yourcentralvalley.com/feed/', colorClass: 'text-indigo-400' },
+  { name: 'GV Wire', url: 'https://gvwire.com/feed/', colorClass: 'text-emerald-400' }
 ];
 
 export const CORS_PROXIES = [

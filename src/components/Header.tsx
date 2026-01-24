@@ -50,7 +50,6 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
         <nav className="vp-nav" aria-label="Primary">
           <a className="vp-nav__link" href="#headlines">Headlines</a>
           <a className="vp-nav__link" href="#conditions">Conditions</a>
-          <a className="vp-nav__link" href="#longform">Long‑form</a>
         </nav>
 
         <div className="vp-actions">

@@ -314,40 +314,6 @@ export default function App() {
                   </div>
                 )}
               </section>
-
-              <section id="longform" className="vp-section" aria-labelledby="longform-heading">
-                <article className="vp-article">
-                  <header className="vp-article__header">
-                    <p className="vp-article__kicker">Long‑form</p>
-                    <h2 id="longform-heading" className="vp-article__title">
-                      {featured?.title || 'The Central Valley, in focus.'}
-                    </h2>
-                    <p className="vp-article__deck">
-                      A reading‑first layout designed for deep coverage, clarity, and calm.
-                    </p>
-                    <div className="vp-article__meta">
-                      <span className="vp-meta">Valley Pulse Desk</span>
-                      <span className="vp-dot" aria-hidden="true" />
-                      <span className="vp-meta">{featured ? formatTimeAgo(featured.pubDate) : 'Updated today'}</span>
-                    </div>
-                  </header>
-
-                  <div className="vp-article__body">
-                    <p>
-                      {featured?.description ||
-                        'This template emphasizes generous line height, restrained contrast, and a refined typographic rhythm for long‑form reading.'}
-                    </p>
-                    <p>
-                      The layout uses a calm color palette, consistent spacing, and clear hierarchy to guide the eye.
-                      Metadata remains present but subtle, allowing the story itself to take precedence.
-                    </p>
-                    <p>
-                      Readers can stay oriented with a lightweight progress indicator and subtle section breaks.
-                      The experience is designed to feel authoritative and composed, on every device.
-                    </p>
-                  </div>
-                </article>
-              </section>
             </div>
 
             <aside className="vp-aside" aria-label="Supplementary">
