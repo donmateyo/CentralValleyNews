@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { WeatherCard } from './components/WeatherCard';
 import { NewsCard, NewsCardSkeleton } from './components/NewsCard';
@@ -6,9 +6,130 @@ import { TabNav } from './components/TabNav';
 import { Toast, showToast } from './components/Toast';
 import { BottomNav } from './components/BottomNav';
 import { useNews } from './hooks/useNews';
+import { FRESNO_KEYWORDS, TULARE_KEYWORDS } from './config';
+import type { Article } from './types';
+
+type CategoryId =
+  | 'all'
+  | 'public-safety'
+  | 'weather'
+  | 'traffic'
+  | 'education'
+  | 'business'
+  | 'sports'
+  | 'politics'
+  | 'community';
+
+const CATEGORY_DEFS: Array<{
+  id: CategoryId;
+  label: string;
+  match: (text: string) => boolean;
+}> = [
+  { id: 'all', label: 'All', match: () => true },
+  {
+    id: 'public-safety',
+    label: 'Public Safety',
+    match: (t) =>
+      hasAny(t, [
+        'police', 'sheriff', 'crime', 'shooting', 'homicide', 'arrest',
+        'fire', 'wildfire', 'calfire', 'evacuation', 'chp', 'rescue'
+      ])
+  },
+  {
+    id: 'weather',
+    label: 'Weather',
+    match: (t) =>
+      hasAny(t, [
+        'weather', 'storm', 'rain', 'heat', 'forecast', 'wind', 'snow',
+        'air quality', 'aqi', 'smoke', 'fog'
+      ])
+  },
+  {
+    id: 'traffic',
+    label: 'Traffic',
+    match: (t) =>
+      hasAny(t, [
+        'traffic', 'collision', 'crash', 'highway', 'freeway', 'road',
+        'lane', 'closure', 'detour', '99', '41', '168'
+      ])
+  },
+  {
+    id: 'education',
+    label: 'Education',
+    match: (t) =>
+      hasAny(t, [
+        'school', 'district', 'college', 'university', 'campus',
+        'students', 'teacher', 'education', 'fresno state'
+      ])
+  },
+  {
+    id: 'business',
+    label: 'Business',
+    match: (t) =>
+      hasAny(t, [
+        'business', 'economy', 'jobs', 'market', 'company',
+        'startup', 'industry', 'investment'
+      ])
+  },
+  {
+    id: 'sports',
+    label: 'Sports',
+    match: (t) =>
+      hasAny(t, [
+        'sports', 'football', 'baseball', 'basketball', 'soccer',
+        'game', 'tournament', 'score'
+      ])
+  },
+  {
+    id: 'politics',
+    label: 'Politics',
+    match: (t) =>
+      hasAny(t, [
+        'city council', 'supervisor', 'election', 'policy', 'governor',
+        'mayor', 'legislation', 'vote'
+      ])
+  },
+  {
+    id: 'community',
+    label: 'Community',
+    match: (t) =>
+      hasAny(t, [
+        'community', 'festival', 'event', 'nonprofit', 'health',
+        'public', 'housing', 'arts', 'culture'
+      ])
+  }
+];
+
+function normalizeText(article: Article): string {
+  return `${article.title} ${article.description}`.toLowerCase();
+}
+
+function hasAny(text: string, words: string[]): boolean {
+  return words.some((w) => text.includes(w));
+}
+
+function isBreaking(pubDate: Date): boolean {
+  const diffMs = Date.now() - pubDate.getTime();
+  return diffMs < 2 * 60 * 60 * 1000;
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  return `${diffDays}d ago`;
+}
 
 export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [category, setCategory] = useState<CategoryId>('all');
+  const [progress, setProgress] = useState(0);
+
   const {
     articles,
     currentTab,
@@ -31,73 +152,231 @@ export default function App() {
     }
   }, [refreshNews]);
 
+  const categoryDef = CATEGORY_DEFS.find((c) => c.id === category) || CATEGORY_DEFS[0];
+
+  const filteredArticles = useMemo(() => {
+    const list = articles;
+    if (categoryDef.id === 'all') return list;
+    return list.filter((a) => categoryDef.match(normalizeText(a)));
+  }, [articles, categoryDef]);
+
+  const featured = filteredArticles[0] || null;
+  const secondary = filteredArticles.slice(1);
+
+  const localityKeywords = useMemo(
+    () => [...FRESNO_KEYWORDS, ...TULARE_KEYWORDS],
+    []
+  );
+
+  const localitySummary = useMemo(() => {
+    const words = localityKeywords.slice(0, 6).join(', ');
+    return `Focused on ${words} and the Central Valley.`;
+  }, [localityKeywords]);
+
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const scrollTop = window.scrollY || doc.scrollTop;
+        const docHeight = doc.scrollHeight - doc.clientHeight;
+        const ratio = docHeight > 0 ? scrollTop / docHeight : 0;
+        setProgress(ratio);
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col pb-24">
+    <div className="vp-shell">
+      <div
+        className="vp-progress"
+        aria-hidden="true"
+        style={{ transform: `scaleX(${progress})` }}
+      />
       <Header onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
-      <main className="flex-1 w-full max-w-4xl mx-auto p-3 space-y-5">
-        {/* Weather Section */}
-        <section>
-          <div className="flex justify-between items-end mb-2 px-1">
-            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Conditions
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <WeatherCard locationKey="fresno" accentColor="bg-blue-500/10" />
-            <WeatherCard locationKey="visalia" accentColor="bg-green-500/10" />
-          </div>
-          <div className="flex justify-end mt-1 px-1">
-            <span className="text-[9px] text-slate-600">
-              Weather by NWS | AQI by AirNow
-            </span>
-          </div>
-        </section>
+      <main className="vp-main" id="top">
+        <div className="vp-container">
+          <div className="vp-layout">
+            <div className="vp-primary">
+              <section className="vp-hero" aria-labelledby="featured-heading">
+                <article className="vp-hero__card">
+                  <div className="vp-hero__media" aria-hidden="true">
+                    {featured?.imageUrl ? (
+                      <img
+                        src={featured.imageUrl}
+                        alt=""
+                        loading="eager"
+                        className="vp-hero__img"
+                      />
+                    ) : (
+                      <div className="vp-hero__placeholder" />
+                    )}
+                  </div>
+                  <div className="vp-hero__content">
+                    <div className="vp-hero__eyebrow">
+                      {featured ? (
+                        <>
+                          <span className={`vp-badge ${isBreaking(featured.pubDate) ? 'vp-badge--alert' : ''}`}>
+                            {isBreaking(featured.pubDate) ? 'Breaking' : 'Featured'}
+                          </span>
+                          <span className="vp-dot" aria-hidden="true" />
+                          <span className={`vp-source ${featured.sourceColor}`}>
+                            {featured.sourceName}
+                          </span>
+                          <span className="vp-dot" aria-hidden="true" />
+                          <span className="vp-meta">{formatTimeAgo(featured.pubDate)}</span>
+                        </>
+                      ) : (
+                        <span className="vp-meta">No featured story yet</span>
+                      )}
+                    </div>
+                    <h2 id="featured-heading" className="vp-hero__title">
+                      {featured?.title || 'Central Valley headlines, curated for clarity.'}
+                    </h2>
+                    <p className="vp-hero__summary">
+                      {featured?.description || localitySummary}
+                    </p>
+                    {featured?.link ? (
+                      <a
+                        className="vp-button"
+                        href={featured.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Read full story
+                      </a>
+                    ) : (
+                      <span className="vp-button vp-button--ghost" aria-hidden="true">
+                        Stay informed
+                      </span>
+                    )}
+                  </div>
+                </article>
+              </section>
 
-        {/* News Section */}
-        <section>
-          <TabNav
-            currentTab={currentTab}
-            onTabChange={setCurrentTab}
-            lastUpdated={lastUpdated}
-          />
+              <section id="headlines" className="vp-section" aria-labelledby="headlines-heading">
+                <TabNav
+                  currentTab={currentTab}
+                  onTabChange={setCurrentTab}
+                  lastUpdated={lastUpdated}
+                />
 
-          {/* News Grid */}
-          {loading && articles.length === 0 ? (
-            <div className="grid grid-cols-2 gap-2 min-h-[200px]">
-              <NewsCardSkeleton />
-              <NewsCardSkeleton />
-              <NewsCardSkeleton />
-              <NewsCardSkeleton />
+                <div className="vp-filter" role="toolbar" aria-label="Category filter">
+                  {CATEGORY_DEFS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="vp-chip"
+                      aria-pressed={category === c.id}
+                      data-active={category === c.id}
+                      onClick={() => setCategory(c.id)}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                {loading && articles.length === 0 ? (
+                  <div className="vp-grid">
+                    <NewsCardSkeleton />
+                    <NewsCardSkeleton />
+                    <NewsCardSkeleton />
+                    <NewsCardSkeleton />
+                  </div>
+                ) : error && articles.length === 0 ? (
+                  <div className="vp-empty" role="status">
+                    <p className="vp-empty__title">We couldn’t load headlines</p>
+                    <p className="vp-empty__text">Please try refreshing the feed.</p>
+                    <button
+                      onClick={handleRefresh}
+                      className="vp-button"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : filteredArticles.length === 0 ? (
+                  <div className="vp-empty" role="status">
+                    <p className="vp-empty__title">No headlines found</p>
+                    <p className="vp-empty__text">Try a different category or county.</p>
+                  </div>
+                ) : (
+                  <div className="vp-grid">
+                    {secondary.slice(0, 24).map((article) => (
+                      <NewsCard key={article.id} article={article} />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section id="longform" className="vp-section" aria-labelledby="longform-heading">
+                <article className="vp-article">
+                  <header className="vp-article__header">
+                    <p className="vp-article__kicker">Long‑form</p>
+                    <h2 id="longform-heading" className="vp-article__title">
+                      {featured?.title || 'The Central Valley, in focus.'}
+                    </h2>
+                    <p className="vp-article__deck">
+                      A reading‑first layout designed for deep coverage, clarity, and calm.
+                    </p>
+                    <div className="vp-article__meta">
+                      <span className="vp-meta">Valley Pulse Desk</span>
+                      <span className="vp-dot" aria-hidden="true" />
+                      <span className="vp-meta">{featured ? formatTimeAgo(featured.pubDate) : 'Updated today'}</span>
+                    </div>
+                  </header>
+
+                  <div className="vp-article__body">
+                    <p>
+                      {featured?.description ||
+                        'This template emphasizes generous line height, restrained contrast, and a refined typographic rhythm for long‑form reading.'}
+                    </p>
+                    <p>
+                      The layout uses a calm color palette, consistent spacing, and clear hierarchy to guide the eye.
+                      Metadata remains present but subtle, allowing the story itself to take precedence.
+                    </p>
+                    <p>
+                      Readers can stay oriented with a lightweight progress indicator and subtle section breaks.
+                      The experience is designed to feel authoritative and composed, on every device.
+                    </p>
+                  </div>
+                </article>
+              </section>
             </div>
-          ) : error && articles.length === 0 ? (
-            <div className="text-center py-12 glass-panel rounded-xl">
-              <svg className="w-8 h-8 text-slate-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M168,144a12,12,0,1,1-12-12A12,12,0,0,1,168,144ZM100,132a12,12,0,1,0,12,12A12,12,0,0,0,100,132Zm128,12A100,100,0,1,1,128,44,100.11,100.11,0,0,1,228,144Zm-16,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,144ZM168,172a52,52,0,0,1-80,0,8,8,0,1,0-12.31,10.23,68,68,0,0,0,104.62,0A8,8,0,0,0,168,172Z"/>
-              </svg>
-              <p className="text-slate-400 text-xs">Unable to load news</p>
-              <button
-                onClick={handleRefresh}
-                className="mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 active:scale-95"
-              >
-                Retry
-              </button>
-            </div>
-          ) : articles.length === 0 ? (
-            <div className="text-center py-12 glass-panel rounded-xl">
-              <svg className="w-8 h-8 text-slate-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z"/>
-              </svg>
-              <p className="text-slate-400 text-xs">No headlines found</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 min-h-[200px]">
-              {articles.slice(0, 25).map(article => (
-                <NewsCard key={article.id} article={article} />
-              ))}
-            </div>
-          )}
-        </section>
+
+            <aside className="vp-aside" aria-label="Supplementary">
+              <section id="conditions" className="vp-section" aria-labelledby="conditions-heading">
+                <div className="vp-section__header">
+                  <h2 id="conditions-heading" className="vp-section__title">Conditions</h2>
+                  <span className="vp-meta">Weather + AQI</span>
+                </div>
+                <div className="vp-stack">
+                  <WeatherCard locationKey="fresno" />
+                  <WeatherCard locationKey="visalia" />
+                </div>
+              </section>
+
+              <section className="vp-section" aria-labelledby="insights-heading">
+                <div className="vp-section__header">
+                  <h2 id="insights-heading" className="vp-section__title">Local Focus</h2>
+                  <span className="vp-meta">Coverage map</span>
+                </div>
+                <div className="vp-card vp-card--panel">
+                  <p className="vp-body">
+                    Valley Pulse curates trusted sources across Fresno and Tulare Counties, highlighting the
+                    stories that shape daily life in the Central Valley.
+                  </p>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </div>
       </main>
 
       <BottomNav />
