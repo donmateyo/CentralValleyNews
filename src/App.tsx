@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useId } from 'react';
 import { Header } from './components/Header';
 import { WeatherCard } from './components/WeatherCard';
 import { NewsCard, NewsCardSkeleton } from './components/NewsCard';
@@ -129,6 +129,8 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [category, setCategory] = useState<CategoryId>('all');
   const [progress, setProgress] = useState(0);
+  const [isWeatherOpen, setIsWeatherOpen] = useState(false);
+  const mobileWeatherId = useId();
 
   const {
     articles,
@@ -195,6 +197,56 @@ export default function App() {
 
   return (
     <div className="vp-shell">
+      <style>{`
+        .vp-mobile-weather { margin-top: 1.5rem; }
+        .vp-disclosure { padding: 1rem; }
+        .vp-disclosure__button {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          text-align: left;
+          background: transparent;
+          border: 0;
+          padding: 0;
+          cursor: pointer;
+        }
+        .vp-disclosure__button:focus-visible {
+          outline: 2px solid currentColor;
+          outline-offset: 4px;
+          border-radius: 0.5rem;
+        }
+        .vp-disclosure__icon {
+          display: inline-flex;
+          transition: transform 200ms ease;
+        }
+        .vp-disclosure__icon.is-open { transform: rotate(180deg); }
+
+        .vp-disclosure__panel {
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transition: max-height 250ms ease, opacity 200ms ease;
+        }
+        .vp-disclosure__panel.is-open {
+          max-height: 1200px;
+          opacity: 1;
+        }
+        .vp-disclosure__panel-inner { margin-top: 1rem; }
+
+        @media (min-width: 1024px) {
+          .vp-mobile-weather { display: none; }
+        }
+        @media (max-width: 1023px) {
+          .vp-desktop-weather { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .vp-disclosure__icon,
+          .vp-disclosure__panel { transition: none; }
+        }
+      `}</style>
+
       <div
         className="vp-progress"
         aria-hidden="true"
@@ -274,6 +326,43 @@ export default function App() {
                 </article>
               </section>
 
+              {/* Mobile-only weather disclosure, placed below hero */}
+              <section className="vp-mobile-weather" aria-labelledby="mobile-conditions-heading">
+                <div className="vp-card vp-card--panel vp-disclosure">
+                  <button
+                    type="button"
+                    className="vp-disclosure__button"
+                    aria-expanded={isWeatherOpen}
+                    aria-controls={mobileWeatherId}
+                    onClick={() => setIsWeatherOpen((v) => !v)}
+                  >
+                    <div>
+                      <h2 id="mobile-conditions-heading" className="vp-section__title">Conditions</h2>
+                      <span className="vp-meta">Weather + AQI</span>
+                    </div>
+                    <span
+                      className={`vp-disclosure__icon ${isWeatherOpen ? 'is-open' : ''}`}
+                      aria-hidden="true"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 15.5l-6-6 1.4-1.4L12 12.7l4.6-4.6L18 9.5z" />
+                      </svg>
+                    </span>
+                  </button>
+                  <div
+                    id={mobileWeatherId}
+                    className={`vp-disclosure__panel ${isWeatherOpen ? 'is-open' : ''}`}
+                    role="region"
+                    aria-labelledby="mobile-conditions-heading"
+                  >
+                    <div className="vp-disclosure__panel-inner vp-stack">
+                      <WeatherCard locationKey="fresno" />
+                      <WeatherCard locationKey="visalia" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               <section id="headlines" className="vp-section" aria-labelledby="headlines-heading">
                 <TabNav
                   currentTab={currentTab}
@@ -330,7 +419,7 @@ export default function App() {
             </div>
 
             <aside className="vp-aside" aria-label="Supplementary">
-              <section id="conditions" className="vp-section" aria-labelledby="conditions-heading">
+              <section id="conditions" className="vp-section vp-desktop-weather" aria-labelledby="conditions-heading">
                 <div className="vp-section__header">
                   <h2 id="conditions-heading" className="vp-section__title">Conditions</h2>
                   <span className="vp-meta">Weather + AQI</span>
