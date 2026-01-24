@@ -162,6 +162,7 @@ export default function App() {
 
   const featured = filteredArticles[0] || null;
   const secondary = filteredArticles.slice(1);
+  const isHeroLoading = loading && filteredArticles.length === 0;
 
   const localityKeywords = useMemo(
     () => [...FRESNO_KEYWORDS, ...TULARE_KEYWORDS],
@@ -206,9 +207,11 @@ export default function App() {
           <div className="vp-layout">
             <div className="vp-primary">
               <section className="vp-hero" aria-labelledby="featured-heading">
-                <article className="vp-hero__card">
+                <article className="vp-hero__card" aria-busy={isHeroLoading}>
                   <div className="vp-hero__media" aria-hidden="true">
-                    {featured?.imageUrl ? (
+                    {isHeroLoading ? (
+                      <div className="vp-hero__placeholder" />
+                    ) : featured?.imageUrl ? (
                       <img
                         src={featured.imageUrl}
                         alt=""
@@ -221,7 +224,13 @@ export default function App() {
                   </div>
                   <div className="vp-hero__content">
                     <div className="vp-hero__eyebrow">
-                      {featured ? (
+                      {isHeroLoading ? (
+                        <>
+                          <span className="vp-badge">Loading</span>
+                          <span className="vp-dot" aria-hidden="true" />
+                          <span className="vp-meta">Fetching latest headline</span>
+                        </>
+                      ) : featured ? (
                         <>
                           <span className={`vp-badge ${isBreaking(featured.pubDate) ? 'vp-badge--alert' : ''}`}>
                             {isBreaking(featured.pubDate) ? 'Breaking' : 'Featured'}
@@ -238,12 +247,16 @@ export default function App() {
                       )}
                     </div>
                     <h2 id="featured-heading" className="vp-hero__title">
-                      {featured?.title || 'Central Valley headlines, curated for clarity.'}
+                      {isHeroLoading
+                        ? 'Loading latest headline…'
+                        : featured?.title || 'Central Valley headlines, curated for clarity.'}
                     </h2>
                     <p className="vp-hero__summary">
-                      {featured?.description || localitySummary}
+                      {isHeroLoading
+                        ? 'Please wait a moment while we fetch the newest story.'
+                        : featured?.description || localitySummary}
                     </p>
-                    {featured?.link ? (
+                    {featured?.link && !isHeroLoading ? (
                       <a
                         className="vp-button"
                         href={featured.link}
@@ -254,7 +267,7 @@ export default function App() {
                       </a>
                     ) : (
                       <span className="vp-button vp-button--ghost" aria-hidden="true">
-                        Stay informed
+                        {isHeroLoading ? 'Loading…' : 'Stay informed'}
                       </span>
                     )}
                   </div>

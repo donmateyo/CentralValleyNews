@@ -9,13 +9,21 @@ function generateId(title: string, source: string): string {
 
 // Fetch with fallback through multiple CORS proxies
 async function fetchWithFallback(sourceUrl: string): Promise<string> {
+  const bustedUrl = `${sourceUrl}${sourceUrl.includes('?') ? '&' : '?'}_=${Date.now()}`;
+
   for (const proxyFn of CORS_PROXIES) {
-    const proxyUrl = proxyFn(sourceUrl);
+    const proxyUrl = proxyFn(bustedUrl);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const res = await fetch(proxyUrl, { signal: controller.signal });
+      const res = await fetch(proxyUrl, {
+        signal: controller.signal,
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`Status ${res.status}`);
@@ -282,7 +290,9 @@ export function useNews() {
     fetchNews(true);
   }, []);
 
-  const filteredArticles = filterByCounty(articles, currentTab);
+  const filteredArticles = filterByCounty(articles, currentTab)
+    .slice()
+    .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 
   return {
     articles: filteredArticles,
