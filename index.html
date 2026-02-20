@@ -1537,30 +1537,174 @@ self.addEventListener('fetch', (e) => {
     }
 
     /** ================================================================
-     *  PWA MANIFEST (dynamic)
+     *  PWA MANIFEST & APP ICON (dynamic, canvas-rendered)
      *  ================================================================ */
     (() => {
+        const S = 512;
+        const C = S / 2;
         const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
+        canvas.width = S;
+        canvas.height = S;
         const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = '#D4A84B';
+        /* ── Rich gradient background ── */
+        const bg = ctx.createLinearGradient(0, 0, S * 0.4, S);
+        bg.addColorStop(0, '#F2D060');
+        bg.addColorStop(0.4, '#D4A84B');
+        bg.addColorStop(1, '#9A7424');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, S, S);
+
+        /* ── Glossy radial highlight (top-left) ── */
+        const gloss = ctx.createRadialGradient(S * 0.32, S * 0.22, 0, C, C, S * 0.78);
+        gloss.addColorStop(0, 'rgba(255,255,255,0.28)');
+        gloss.addColorStop(0.4, 'rgba(255,255,255,0.06)');
+        gloss.addColorStop(1, 'rgba(0,0,0,0.10)');
+        ctx.fillStyle = gloss;
+        ctx.fillRect(0, 0, S, S);
+
+        /* ── Subtle valley / Sierra foothill silhouette ── */
         ctx.beginPath();
-        ctx.arc(256, 256, 256, 0, Math.PI * 2);
+        ctx.moveTo(0, S);
+        ctx.lineTo(0, S * 0.81);
+        ctx.bezierCurveTo(S * 0.08, S * 0.77, S * 0.16, S * 0.73, S * 0.26, S * 0.76);
+        ctx.bezierCurveTo(S * 0.34, S * 0.70, S * 0.43, S * 0.64, S * 0.50, S * 0.69);
+        ctx.bezierCurveTo(S * 0.57, S * 0.63, S * 0.66, S * 0.66, S * 0.74, S * 0.71);
+        ctx.bezierCurveTo(S * 0.84, S * 0.68, S * 0.93, S * 0.73, S, S * 0.77);
+        ctx.lineTo(S, S);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0,0,0,0.055)';
         ctx.fill();
 
+        /* ── Newspaper-style double rule (top) ── */
+        ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(S * 0.13, S * 0.098);
+        ctx.lineTo(S * 0.87, S * 0.098);
+        ctx.stroke();
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(S * 0.13, S * 0.125);
+        ctx.lineTo(S * 0.87, S * 0.125);
+        ctx.stroke();
+
+        /* ── "CV" monogram with depth shadow ── */
+        ctx.save();
+        ctx.shadowColor = 'rgba(40,25,0,0.40)';
+        ctx.shadowBlur = 24;
+        ctx.shadowOffsetY = 8;
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 220px sans-serif';
+        ctx.font = 'bold 224px -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('CV', 256, 240);
+        ctx.fillText('CV', C, S * 0.385);
+        ctx.restore();
 
-        ctx.font = 'bold 80px sans-serif';
-        ctx.fillText('NEWS', 256, 360);
+        /* subtle inner glow on letters */
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 224px -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CV', C, S * 0.382);
+        ctx.restore();
 
+        /* ── Elegant center divider with gradient fade ── */
+        const divY = S * 0.555;
+        const divGrad = ctx.createLinearGradient(S * 0.12, 0, S * 0.88, 0);
+        divGrad.addColorStop(0, 'rgba(255,255,255,0)');
+        divGrad.addColorStop(0.12, 'rgba(255,255,255,0.50)');
+        divGrad.addColorStop(0.5, 'rgba(255,255,255,0.85)');
+        divGrad.addColorStop(0.88, 'rgba(255,255,255,0.50)');
+        divGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = divGrad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(S * 0.12, divY);
+        ctx.lineTo(S * 0.88, divY);
+        ctx.stroke();
+
+        /* ── Diamond ornament on divider ── */
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(40,25,0,0.12)';
+        ctx.shadowBlur = 3;
+        ctx.translate(C, divY);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillRect(-6.5, -6.5, 13, 13);
+        ctx.restore();
+
+        /* small dots flanking diamond */
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.beginPath();
+        ctx.arc(C - 30, divY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(C + 30, divY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        /* ── "NEWS" with editorial letter-spacing ── */
+        ctx.save();
+        ctx.shadowColor = 'rgba(40,25,0,0.20)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.font = '600 72px -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const word = 'NEWS';
+        const gap = 22;
+        const wordY = S * 0.68;
+        let tw = 0;
+        for (let i = 0; i < word.length; i++) {
+            tw += ctx.measureText(word[i]).width;
+            if (i < word.length - 1) tw += gap;
+        }
+        let cx = (S - tw) / 2;
+        for (let i = 0; i < word.length; i++) {
+            ctx.fillText(word[i], cx, wordY);
+            cx += ctx.measureText(word[i]).width + gap;
+        }
+        ctx.restore();
+
+        /* ── Newspaper-style double rule (bottom) ── */
+        ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(S * 0.13, S * 0.835);
+        ctx.lineTo(S * 0.87, S * 0.835);
+        ctx.stroke();
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(S * 0.13, S * 0.86);
+        ctx.lineTo(S * 0.87, S * 0.86);
+        ctx.stroke();
+
+        /* ── Subtle corner accents ── */
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 2;
+        const m = S * 0.08;
+        const cLen = S * 0.06;
+        /* top-left */
+        ctx.beginPath(); ctx.moveTo(m, m + cLen); ctx.lineTo(m, m); ctx.lineTo(m + cLen, m); ctx.stroke();
+        /* top-right */
+        ctx.beginPath(); ctx.moveTo(S - m - cLen, m); ctx.lineTo(S - m, m); ctx.lineTo(S - m, m + cLen); ctx.stroke();
+        /* bottom-left */
+        ctx.beginPath(); ctx.moveTo(m, S - m - cLen); ctx.lineTo(m, S - m); ctx.lineTo(m + cLen, S - m); ctx.stroke();
+        /* bottom-right */
+        ctx.beginPath(); ctx.moveTo(S - m - cLen, S - m); ctx.lineTo(S - m, S - m); ctx.lineTo(S - m, S - m - cLen); ctx.stroke();
+
+        /* ── Generate data URLs ── */
         const iconUrl = canvas.toDataURL('image/png');
 
+        const c192 = document.createElement('canvas');
+        c192.width = 192; c192.height = 192;
+        c192.getContext('2d').drawImage(canvas, 0, 0, 192, 192);
+        const icon192 = c192.toDataURL('image/png');
+
+        /* ── PWA Manifest ── */
         const manifest = {
             name: 'Central Valley News',
             short_name: 'CV News',
@@ -1571,7 +1715,9 @@ self.addEventListener('fetch', (e) => {
             orientation: 'portrait-primary',
             description: 'Local news aggregator for Fresno, Tulare, and Kings Counties',
             icons: [
-                { src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+                { src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'any' },
+                { src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
             ]
         };
 
@@ -1582,8 +1728,10 @@ self.addEventListener('fetch', (e) => {
         link.href = manifestUrl;
         document.head.appendChild(link);
 
+        /* ── Apple Touch Icon ── */
         const touchIcon = document.createElement('link');
         touchIcon.rel = 'apple-touch-icon';
+        touchIcon.setAttribute('sizes', '512x512');
         touchIcon.href = iconUrl;
         document.head.appendChild(touchIcon);
     })();
