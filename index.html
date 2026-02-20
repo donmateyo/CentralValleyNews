@@ -42,6 +42,7 @@
             --radius-xl: 24px;
             --header-h: 56px;
             --nav-h: 60px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
             --font: 'Inter',-apple-system,'Segoe UI',system-ui,Roboto,sans-serif;
             --ease: cubic-bezier(0.4,0,0.2,1);
             --dur: 0.25s;
@@ -66,7 +67,7 @@
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;height:100%;}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased;padding-top:var(--header-h);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased;padding-top:var(--header-h);padding-bottom:calc(var(--nav-h) + var(--safe-bottom));}
         a{color:var(--primary-dark);text-decoration:none;}
         [data-theme="dark"] a{color:var(--primary-light);}
         button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit;}
@@ -185,8 +186,8 @@
         .skel-line.h18{height:18px;}
 
         /* Bottom Navigation */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--bg-card);border-top:1px solid var(--border-light);z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);}
-        .nav-inner{max-width:600px;margin:0 auto;display:flex;height:100%;align-items:stretch;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));background:var(--bg-card);border-top:1px solid var(--border-light);z-index:1000;padding-bottom:var(--safe-bottom);}
+        .nav-inner{max-width:600px;margin:0 auto;display:flex;height:var(--nav-h);align-items:stretch;}
         .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:500;color:var(--text-muted);transition:color var(--dur) var(--ease);position:relative;padding:4px 0;}
         .nav-tab::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;border-radius:0 0 3px 3px;background:var(--primary);transform:scaleX(0);transition:transform var(--dur) var(--ease);}
         .nav-tab.active{color:var(--primary-dark);}
@@ -210,7 +211,7 @@
         .sheet-content{padding:16px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
         .sheet-content p{font-size:15px;line-height:1.7;color:var(--text-secondary);margin-bottom:12px;}
         .sheet-content img{border-radius:var(--radius);margin:12px 0;}
-        .sheet-actions{padding:12px 20px;border-top:1px solid var(--border-light);display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));}
+        .sheet-actions{padding:12px 20px;border-top:1px solid var(--border-light);display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(12px + var(--safe-bottom));}
         .sheet-btn{flex:1;padding:10px;border-radius:var(--radius);font-weight:600;font-size:14px;text-align:center;transition:background var(--dur) var(--ease);}
         .sheet-btn-primary{background:var(--primary);color:#fff;}
         .sheet-btn-primary:hover{background:var(--primary-dark);}
@@ -243,6 +244,20 @@
         .status-line .online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
         .status-line .online-dot.on{background:#6B9E4A;}
         .status-line .online-dot.off{background:var(--highlight);}
+
+        /* Standalone PWA mode fixes */
+        @media (display-mode: standalone) {
+            .bottom-nav {
+                height: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+                padding-bottom: calc(var(--safe-bottom) + 8px);
+            }
+            body {
+                padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+            }
+            .sheet-actions {
+                padding-bottom: calc(12px + var(--safe-bottom) + 8px);
+            }
+        }
 
         /* Responsive */
         @media(max-width:480px){
@@ -476,12 +491,6 @@
      *  UTILITY FUNCTIONS
      *  ================================================================ */
 
-    /**
-     * Debounce a function call
-     * @param {Function} fn - Function to debounce
-     * @param {number} ms - Delay in milliseconds
-     * @returns {Function} Debounced function
-     */
     const debounce = (fn, ms) => {
         let timer;
         return (...args) => {
@@ -490,11 +499,6 @@
         };
     };
 
-    /**
-     * Format a date to relative time string
-     * @param {Date} date - Date to format
-     * @returns {string} Relative time string
-     */
     const timeAgo = (date) => {
         const now = Date.now();
         const diff = now - date.getTime();
@@ -508,11 +512,6 @@
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    /**
-     * Strip HTML tags from a string
-     * @param {string} html - HTML string
-     * @returns {string} Plain text
-     */
     const stripHtml = (html) => {
         if (!html) return '';
         const tmp = document.createElement('div');
@@ -520,30 +519,15 @@
         return tmp.textContent?.trim() || '';
     };
 
-    /**
-     * Extract first image URL from HTML string
-     * @param {string} html - HTML content
-     * @returns {string|null} Image URL or null
-     */
     const extractImage = (html) => {
         if (!html) return null;
         const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
         return match?.[1] || null;
     };
 
-    /**
-     * Normalize a string for comparison (deduplication)
-     * @param {string} str - Input string
-     * @returns {string} Normalized string
-     */
     const normalizeStr = (str) =>
         (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
 
-    /**
-     * Generate a simple hash from string for dedup keying
-     * @param {string} str - Input string
-     * @returns {string} Hash string
-     */
     const simpleHash = (str) => {
         let h = 0;
         for (let i = 0; i < str.length; i++) {
@@ -552,22 +536,12 @@
         return h.toString(36);
     };
 
-    /**
-     * Sanitize text for safe HTML insertion
-     * @param {string} text - Text to sanitize
-     * @returns {string} Sanitized text
-     */
     const sanitize = (text) => {
         const el = document.createElement('span');
         el.textContent = text;
         return el.innerHTML;
     };
 
-    /**
-     * Map weather code from Open-Meteo to emoji and description
-     * @param {number} code - WMO weather code
-     * @returns {{ icon: string, desc: string }}
-     */
     const weatherCodeMap = (code) => {
         const map = {
             0: { icon: '☀️', desc: 'Clear sky' },
@@ -602,13 +576,6 @@
         return map[code] || { icon: '🌡️', desc: 'Unknown' };
     };
 
-    /**
-     * Classify an article into a news category based on keywords
-     * @param {string} title - Article title
-     * @param {string} desc - Article description
-     * @param {Array<string>} feedCategories - Categories from feed
-     * @returns {string} Category ID
-     */
     const classifyArticle = (title, desc, feedCategories = []) => {
         const text = `${title} ${desc} ${feedCategories.join(' ')}`.toLowerCase();
         const rules = [
@@ -645,7 +612,6 @@
             this.ready = this._init();
         }
 
-        /** Initialize the database */
         async _init() {
             try {
                 return await new Promise((resolve, reject) => {
@@ -674,10 +640,6 @@
             }
         }
 
-        /**
-         * Store articles in the database
-         * @param {Array} articles - Array of article objects
-         */
         async saveArticles(articles) {
             try {
                 await this.ready;
@@ -700,11 +662,6 @@
             }
         }
 
-        /**
-         * Get articles by county from database
-         * @param {string} county - County ID
-         * @returns {Promise<Array>} Articles array
-         */
         async getArticles(county) {
             try {
                 await this.ready;
@@ -733,11 +690,6 @@
             }
         }
 
-        /**
-         * Save metadata (like last update time)
-         * @param {string} key
-         * @param {*} value
-         */
         async saveMeta(key, value) {
             try {
                 await this.ready;
@@ -752,11 +704,6 @@
             }
         }
 
-        /**
-         * Get metadata value
-         * @param {string} key
-         * @returns {Promise<*>}
-         */
         async getMeta(key) {
             try {
                 await this.ready;
@@ -777,12 +724,6 @@
      *  RSS FEED PARSER
      *  ================================================================ */
     class FeedParser {
-        /**
-         * Parse RSS or Atom XML into article objects
-         * @param {string} xml - XML string
-         * @param {Object} feedConfig - Feed configuration
-         * @returns {Array} Parsed articles
-         */
         static parse(xml, feedConfig) {
             try {
                 const parser = new DOMParser();
@@ -803,12 +744,6 @@
             }
         }
 
-        /**
-         * Parse RSS 2.0 items
-         * @param {NodeList} items
-         * @param {Object} feedConfig
-         * @returns {Array}
-         */
         static _parseRSS(items, feedConfig) {
             const articles = [];
             items.forEach(item => {
@@ -867,12 +802,6 @@
             return articles;
         }
 
-        /**
-         * Parse Atom feed entries
-         * @param {NodeList} entries
-         * @param {Object} feedConfig
-         * @returns {Array}
-         */
         static _parseAtom(entries, feedConfig) {
             const articles = [];
             entries.forEach(entry => {
@@ -923,9 +852,6 @@
      *  NEWS AGGREGATOR
      *  ================================================================ */
     class NewsAggregator {
-        /**
-         * @param {NewsDB} db
-         */
         constructor(db) {
             this.db = db;
             this.articles = [];
@@ -933,12 +859,6 @@
             this.feedStatus = new Map();
         }
 
-        /**
-         * Fetch a URL with CORS proxy and timeout
-         * @param {string} url
-         * @param {number} retries
-         * @returns {Promise<string>} Response text
-         */
         async _fetchWithProxy(url, retries = CONFIG.maxRetries) {
             for (let attempt = 0; attempt <= retries; attempt++) {
                 for (let pi = 0; pi < CONFIG.corsProxies.length; pi++) {
@@ -970,11 +890,6 @@
             throw new Error('All fetch attempts failed');
         }
 
-        /**
-         * Fetch and parse a single feed
-         * @param {Object} feedConfig
-         * @returns {Promise<Array>}
-         */
         async _fetchFeed(feedConfig) {
             try {
                 const xml = await this._fetchWithProxy(feedConfig.url);
@@ -988,11 +903,6 @@
             }
         }
 
-        /**
-         * Deduplicate articles by normalized title
-         * @param {Array} articles
-         * @returns {Array}
-         */
         _deduplicate(articles) {
             const seen = new Map();
             const deduped = [];
@@ -1016,11 +926,6 @@
             return deduped;
         }
 
-        /**
-         * Fetch all feeds and aggregate articles
-         * @param {Function} onProgress - Progress callback(loaded, total)
-         * @returns {Promise<Array>} All articles
-         */
         async fetchAll(onProgress) {
             const feeds = CONFIG.feeds;
             let loaded = 0;
@@ -1051,29 +956,15 @@
             return validArticles;
         }
 
-        /**
-         * Get articles filtered by county
-         * @param {string} county
-         * @returns {Array}
-         */
         getByCounty(county) {
             return this.articles.filter(a => a.counties?.includes(county));
         }
 
-        /**
-         * Get articles from cache (offline)
-         * @param {string} county
-         * @returns {Promise<Array>}
-         */
         async getCached(county) {
             const cached = await this.db.getArticles(county);
             return cached.sort((a, b) => b.timestamp - a.timestamp);
         }
 
-        /**
-         * Get feed status report
-         * @returns {Object}
-         */
         getStatus() {
             let ok = 0, fail = 0;
             this.feedStatus.forEach(v => v.ok ? ok++ : fail++);
@@ -1085,11 +976,6 @@
      *  WEATHER SERVICE
      *  ================================================================ */
     class WeatherService {
-        /**
-         * Fetch weather for a county
-         * @param {string} county - County ID
-         * @returns {Promise<Object>} Weather data
-         */
         static async fetch(county) {
             const { lat, lon, city } = CONFIG.counties[county];
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&temperature_unit=fahrenheit&timezone=America/Los_Angeles&forecast_days=5`;
@@ -1145,24 +1031,16 @@
             };
         }
 
-        /** Show loading bar */
         showLoading() {
             this.els.loadingBar.classList.add('active');
             this.els.newsGrid.setAttribute('aria-busy', 'true');
         }
 
-        /** Hide loading bar */
         hideLoading() {
             this.els.loadingBar.classList.remove('active');
             this.els.newsGrid.setAttribute('aria-busy', 'false');
         }
 
-        /**
-         * Display a toast notification
-         * @param {string} message
-         * @param {'info'|'error'|'success'} type
-         * @param {number} duration - ms
-         */
         toast(message, type = 'info', duration = 4000) {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1178,7 +1056,6 @@
             }, duration);
         }
 
-        /** Render skeleton loading cards */
         showSkeletons(count = 6) {
             this.els.newsGrid.innerHTML = '';
             this.els.emptyState.style.display = 'none';
@@ -1199,12 +1076,6 @@
             }
         }
 
-        /**
-         * Render category filter pills
-         * @param {Array} articles - Current articles for counting
-         * @param {string} activeCategory - Currently active category
-         * @param {Function} onSelect - Callback when category is selected
-         */
         renderCategories(articles, activeCategory, onSelect) {
             this.els.categoryPills.innerHTML = '';
             CONFIG.categories.forEach(cat => {
@@ -1219,11 +1090,6 @@
             });
         }
 
-        /**
-         * Render the news grid
-         * @param {Array} articles
-         * @param {Function} onCardClick - Callback when a card is clicked
-         */
         renderArticles(articles, onCardClick) {
             this.els.newsGrid.innerHTML = '';
 
@@ -1277,10 +1143,6 @@
             this.els.newsGrid.appendChild(fragment);
         }
 
-        /**
-         * Open the bottom sheet with an article
-         * @param {Object} article
-         */
         openSheet(article) {
             this.els.sheetSource.textContent = `${article.sourceIcon || '📰'} ${article.source}`;
             this.els.sheetTitle.textContent = article.title;
@@ -1305,17 +1167,12 @@
             this.els.bottomSheet.focus();
         }
 
-        /** Close the bottom sheet */
         closeSheet() {
             this.els.sheetOverlay.classList.remove('open');
             this.els.bottomSheet.classList.remove('open');
             document.body.style.overflow = '';
         }
 
-        /**
-         * Render weather data
-         * @param {Object} data - Open-Meteo response
-         */
         renderWeather(data) {
             const { current_weather, daily, city } = data;
             const wx = weatherCodeMap(current_weather.weathercode);
@@ -1344,29 +1201,16 @@
             }
         }
 
-        /**
-         * Update the article count and source label
-         * @param {number} count
-         * @param {string} countyName
-         */
         updateSourceBar(count, countyName) {
             this.els.articleCount.textContent = count;
             this.els.sourceLabel.textContent = countyName;
         }
 
-        /**
-         * Update online status display
-         * @param {boolean} online
-         */
         updateOnlineStatus(online) {
             this.els.onlineDot.className = `online-dot ${online ? 'on' : 'off'}`;
             this.els.statusText.textContent = online ? 'Online' : 'Offline';
         }
 
-        /**
-         * Update last updated timestamp
-         * @param {Date} date
-         */
         updateLastFetched(date) {
             this.els.lastUpdated.textContent = `Updated ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
         }
@@ -1389,7 +1233,6 @@
             this.isPulling = false;
         }
 
-        /** Initialize the application */
         async init() {
             this._initTheme();
             this._bindEvents();
@@ -1403,7 +1246,6 @@
             this.ui.showSkeletons();
             this.ui.showLoading();
 
-            /* Load cached articles first for instant display */
             const cached = await this.aggregator.getCached(this.currentCounty);
             if (cached.length > 0) {
                 this.allArticles = cached;
@@ -1411,23 +1253,17 @@
                 this.ui.toast('Showing cached articles...', 'info', 2000);
             }
 
-            /* Fetch fresh data */
             await this._fetchNews();
-
-            /* Fetch weather */
             this._fetchWeather();
         }
 
-        /** Fetch fresh news from all feeds */
         async _fetchNews() {
             if (this.isLoading) return;
             this.isLoading = true;
             this.ui.showLoading();
 
             try {
-                const articles = await this.aggregator.fetchAll((loaded, total) => {
-                    /* progress callback */
-                });
+                const articles = await this.aggregator.fetchAll((loaded, total) => {});
                 this.allArticles = articles;
                 this._renderCurrentView();
 
@@ -1452,7 +1288,6 @@
             }
         }
 
-        /** Fetch weather for current county */
         async _fetchWeather() {
             try {
                 const data = await WeatherService.fetch(this.currentCounty);
@@ -1463,7 +1298,6 @@
             }
         }
 
-        /** Get the currently filtered articles */
         _getFilteredArticles() {
             let articles = this.allArticles.filter(a => a.counties?.includes(this.currentCounty));
 
@@ -1483,7 +1317,6 @@
             return articles;
         }
 
-        /** Render the current view based on filters */
         _renderCurrentView() {
             const filtered = this._getFilteredArticles();
             const countyArticles = this.allArticles.filter(a => a.counties?.includes(this.currentCounty));
@@ -1495,32 +1328,25 @@
             this.ui.updateSourceBar(filtered.length, CONFIG.counties[this.currentCounty].name);
         }
 
-        /** Bind all event handlers */
         _bindEvents() {
-            /* Search */
             this.ui.els.searchInput.addEventListener('input', debounce((e) => {
                 this.searchQuery = e.target.value.trim();
                 this._renderCurrentView();
             }, CONFIG.debounceMs));
 
-            /* Refresh */
             this.ui.els.refreshBtn.addEventListener('click', () => this._fetchNews());
             this.ui.els.retryBtn.addEventListener('click', () => this._fetchNews());
 
-            /* Sheet close */
             this.ui.els.sheetClose.addEventListener('click', () => this.ui.closeSheet());
             this.ui.els.sheetOverlay.addEventListener('click', () => this.ui.closeSheet());
 
-            /* Keyboard: Escape closes sheet */
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') this.ui.closeSheet();
             });
 
-            /* Theme toggle */
             this.ui.els.themeToggle.addEventListener('click', () => this._toggleTheme());
         }
 
-        /** Initialize bottom navigation tabs */
         _initNavTabs() {
             const tabs = document.querySelectorAll('.nav-tab');
             tabs.forEach(tab => {
@@ -1542,7 +1368,6 @@
             });
         }
 
-        /** Initialize theme (dark/light) */
         _initTheme() {
             const stored = this._getStoredTheme();
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1559,7 +1384,6 @@
             });
         }
 
-        /** Toggle between dark and light theme */
         _toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
@@ -1578,7 +1402,6 @@
                 : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
         }
 
-        /** Initialize pull-to-refresh for mobile */
         _initPullToRefresh() {
             let startY = 0;
             let pulling = false;
@@ -1624,7 +1447,6 @@
             }, { passive: true });
         }
 
-        /** Initialize header scroll behavior */
         _initScrollHeader() {
             let lastScroll = 0;
             const header = this.ui.els.appHeader;
@@ -1640,7 +1462,6 @@
             }, 50), { passive: true });
         }
 
-        /** Initialize notification permission */
         _initNotifications() {
             if (!('Notification' in window)) return;
             if (Notification.permission === 'default') {
@@ -1660,7 +1481,6 @@
             });
         }
 
-        /** Initialize online/offline status monitoring */
         _initOnlineStatus() {
             this.ui.updateOnlineStatus(navigator.onLine);
             window.addEventListener('online', () => {
@@ -1674,7 +1494,6 @@
             });
         }
 
-        /** Attempt to register service worker */
         _registerSW() {
             if (!('serviceWorker' in navigator)) return;
 
@@ -1710,9 +1529,7 @@ self.addEventListener('fetch', (e) => {
             try {
                 const blob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(blob);
-                navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(() => {
-                    /* SW registration may fail in some environments */
-                });
+                navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(() => {});
             } catch {
                 /* Service workers not available in this context */
             }
@@ -1728,7 +1545,6 @@ self.addEventListener('fetch', (e) => {
         canvas.height = 512;
         const ctx = canvas.getContext('2d');
 
-        /* Draw icon */
         ctx.fillStyle = '#D4A84B';
         ctx.beginPath();
         ctx.arc(256, 256, 256, 0, Math.PI * 2);
@@ -1766,7 +1582,6 @@ self.addEventListener('fetch', (e) => {
         link.href = manifestUrl;
         document.head.appendChild(link);
 
-        /* Apple touch icon */
         const touchIcon = document.createElement('link');
         touchIcon.rel = 'apple-touch-icon';
         touchIcon.href = iconUrl;
