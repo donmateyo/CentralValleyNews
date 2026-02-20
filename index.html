@@ -1,23 +1,1783 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="en" data-theme="light">
+<head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/icon-2026.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#1d1d1d">
-    <meta name="description" content="Real-time weather, air quality, and news for Fresno and Tulare Counties.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Central Valley News - Local news aggregator for Fresno, Tulare, and Kings Counties, California">
+    <meta name="theme-color" content="#D4A84B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CV News">
+    <title>Central Valley News</title>
+    <style>
+        :root {
+            --primary: #D4A84B;
+            --primary-light: #E0BE72;
+            --primary-dark: #B8913A;
+            --secondary: #7A8B69;
+            --secondary-light: #94A584;
+            --secondary-dark: #627352;
+            --accent: #F4A261;
+            --accent-light: #F7BA88;
+            --accent-dark: #E08C42;
+            --highlight: #C45B3A;
+            --highlight-light: #D47A5E;
+            --highlight-dark: #A84B2E;
+            --bg: #F5F1E8;
+            --bg-card: #FFFFFF;
+            --bg-elevated: #EDE9E0;
+            --bg-hover: #E8E3D8;
+            --text: #2C2416;
+            --text-secondary: #6B5D4D;
+            --text-muted: #9A8C7A;
+            --border: #D8D0C4;
+            --border-light: #E8E2D6;
+            --shadow-sm: 0 1px 3px rgba(44,36,22,0.06);
+            --shadow: 0 2px 8px rgba(44,36,22,0.08);
+            --shadow-md: 0 4px 16px rgba(44,36,22,0.1);
+            --shadow-lg: 0 8px 32px rgba(44,36,22,0.15);
+            --radius-sm: 6px;
+            --radius: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --header-h: 56px;
+            --nav-h: 60px;
+            --font: 'Inter',-apple-system,'Segoe UI',system-ui,Roboto,sans-serif;
+            --ease: cubic-bezier(0.4,0,0.2,1);
+            --dur: 0.25s;
+        }
+        [data-theme="dark"] {
+            --bg: #3D352E;
+            --bg-card: #4A4139;
+            --bg-elevated: #524840;
+            --bg-hover: #5A5048;
+            --text: #E8DCC4;
+            --text-secondary: #C4B8A4;
+            --text-muted: #9A8E7C;
+            --border: #5A5048;
+            --border-light: #635850;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.15);
+            --shadow: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.35);
+        }
+        @media(prefers-reduced-motion:reduce){
+            *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;scroll-behavior:auto!important;}
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;height:100%;}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased;padding-top:var(--header-h);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
+        a{color:var(--primary-dark);text-decoration:none;}
+        [data-theme="dark"] a{color:var(--primary-light);}
+        button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit;}
+        img{max-width:100%;height:auto;display:block;}
+        ul,ol{list-style:none;}
+        :focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm);}
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+        #skip-link{position:absolute;top:-100%;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:8px 16px;border-radius:0 0 var(--radius) var(--radius);z-index:10000;font-weight:600;}
+        #skip-link:focus{top:0;}
 
-    <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        /* Header */
+        .header{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-card);border-bottom:1px solid var(--border-light);z-index:1000;transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);will-change:transform;}
+        .header.scrolled{box-shadow:var(--shadow-md);}
+        .header-inner{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;align-items:center;height:100%;gap:12px;}
+        .logo{display:flex;align-items:center;gap:8px;flex-shrink:0;font-weight:700;font-size:18px;color:var(--text);}
+        .logo-icon{width:32px;height:32px;}
+        .search-wrap{flex:1;max-width:480px;position:relative;}
+        .search-input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--bg-elevated);color:var(--text);font-size:14px;transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);}
+        .search-input::placeholder{color:var(--text-muted);}
+        .search-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(212,168,75,0.15);}
+        .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+        .header-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+        .icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background var(--dur) var(--ease);color:var(--text-secondary);}
+        .icon-btn:hover,.icon-btn:focus-visible{background:var(--bg-hover);}
+        .icon-btn svg{width:20px;height:20px;}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        /* Pull to Refresh */
+        .ptr-indicator{position:fixed;top:var(--header-h);left:50%;transform:translateX(-50%) translateY(-60px);z-index:999;width:40px;height:40px;border-radius:50%;background:var(--bg-card);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;transition:transform 0.2s var(--ease);pointer-events:none;opacity:0;}
+        .ptr-indicator.active{opacity:1;}
+        .ptr-indicator.refreshing .ptr-spinner{animation:spin 0.8s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        .ptr-spinner{width:20px;height:20px;color:var(--primary);}
 
-    <title>Valley Pulse</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        /* Weather Widget */
+        .weather-section{max-width:1200px;margin:0 auto;padding:16px;}
+        .weather-card{background:linear-gradient(135deg,var(--secondary),var(--secondary-dark));color:#fff;border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-md);overflow:hidden;position:relative;}
+        .weather-card::after{content:'';position:absolute;top:-30%;right:-10%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.06);}
+        .weather-current{display:flex;align-items:center;gap:16px;margin-bottom:16px;position:relative;z-index:1;}
+        .weather-temp{font-size:48px;font-weight:700;line-height:1;}
+        .weather-info h3{font-size:16px;font-weight:600;margin-bottom:2px;}
+        .weather-info p{font-size:13px;opacity:0.85;}
+        .weather-icon{font-size:48px;line-height:1;}
+        .weather-forecast{display:flex;gap:8px;overflow-x:auto;position:relative;z-index:1;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+        .weather-forecast::-webkit-scrollbar{display:none;}
+        .forecast-day{flex:0 0 auto;min-width:72px;background:rgba(255,255,255,0.12);border-radius:var(--radius);padding:10px 8px;text-align:center;font-size:12px;backdrop-filter:blur(4px);}
+        .forecast-day .day-name{font-weight:600;margin-bottom:4px;}
+        .forecast-day .day-icon{font-size:22px;margin:4px 0;}
+        .forecast-day .day-temps{display:flex;justify-content:center;gap:6px;}
+        .forecast-day .hi{font-weight:600;}
+        .forecast-day .lo{opacity:0.7;}
+
+        /* Category Pills */
+        .categories-wrap{max-width:1200px;margin:0 auto;padding:0 16px 12px;}
+        .categories{display:flex;gap:8px;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+        .categories::-webkit-scrollbar{display:none;}
+        .cat-pill{flex:0 0 auto;padding:6px 14px;border-radius:var(--radius-xl);font-size:13px;font-weight:500;background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border-light);transition:all var(--dur) var(--ease);white-space:nowrap;cursor:pointer;}
+        .cat-pill:hover{background:var(--bg-hover);border-color:var(--border);}
+        .cat-pill.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+        .cat-pill .pill-count{display:inline-block;margin-left:4px;font-size:11px;opacity:0.7;}
+
+        /* Source Filter */
+        .source-bar{max-width:1200px;margin:0 auto;padding:0 16px 8px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);}
+        .source-bar span{font-weight:600;color:var(--text-secondary);}
+        .source-count{background:var(--primary);color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-xl);}
+
+        /* News Grid */
+        .news-section{max-width:1200px;margin:0 auto;padding:0 16px 24px;}
+        .news-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+        @media(min-width:640px){.news-grid{grid-template-columns:repeat(2,1fr);}}
+        @media(min-width:1024px){.news-grid{grid-template-columns:repeat(3,1fr);}}
+
+        /* News Card */
+        .news-card{background:var(--bg-card);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);cursor:pointer;display:flex;flex-direction:column;}
+        .news-card:hover,.news-card:focus-within{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+        .card-img-wrap{position:relative;width:100%;padding-top:52%;background:var(--bg-elevated);overflow:hidden;}
+        .card-img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:transform 0.4s var(--ease);}
+        .news-card:hover .card-img{transform:scale(1.03);}
+        .card-img-placeholder{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,var(--bg-elevated),var(--bg-hover));}
+        .card-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;}
+        .card-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;}
+        .card-source{font-weight:600;color:var(--primary-dark);display:flex;align-items:center;gap:4px;}
+        [data-theme="dark"] .card-source{color:var(--primary-light);}
+        .card-source-icon{font-size:14px;}
+        .card-time{color:var(--text-muted);margin-left:auto;white-space:nowrap;}
+        .card-category{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;border-radius:var(--radius-sm);display:inline-block;margin-bottom:6px;width:fit-content;}
+        .cat-breaking{background:#C45B3A22;color:var(--highlight);}
+        .cat-crime{background:#C45B3A18;color:#A84B2E;}
+        .cat-agriculture{background:#7A8B6922;color:var(--secondary-dark);}
+        .cat-weather{background:#D4A84B22;color:var(--primary-dark);}
+        .cat-community{background:#F4A26122;color:var(--accent-dark);}
+        .cat-education{background:#7A8B6918;color:#62735A;}
+        .cat-business{background:#D4A84B18;color:#B8913A;}
+        .cat-politics{background:#C45B3A15;color:#A84B2E;}
+        .cat-sports{background:#7A8B6920;color:var(--secondary);}
+        .cat-arts{background:#F4A26118;color:var(--accent-dark);}
+        .card-title{font-size:16px;font-weight:600;line-height:1.35;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--text);}
+        .card-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;flex:1;}
+        .card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border-light);font-size:12px;color:var(--text-muted);}
+        .card-read-btn{color:var(--primary-dark);font-weight:600;display:flex;align-items:center;gap:4px;}
+        [data-theme="dark"] .card-read-btn{color:var(--primary-light);}
+
+        /* Skeleton */
+        .skeleton{position:relative;overflow:hidden;background:var(--bg-elevated);border-radius:var(--radius);}
+        .skeleton::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);animation:shimmer 1.5s infinite;transform:translateX(-100%);}
+        [data-theme="dark"] .skeleton::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);}
+        @keyframes shimmer{to{transform:translateX(100%);}}
+        .skel-card{background:var(--bg-card);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-light);}
+        .skel-img{width:100%;padding-top:52%;background:var(--bg-elevated);position:relative;overflow:hidden;}
+        .skel-img::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);animation:shimmer 1.5s infinite;transform:translateX(-100%);}
+        .skel-body{padding:14px 16px;}
+        .skel-line{height:12px;border-radius:6px;margin-bottom:10px;}
+        .skel-line.w60{width:60%;}
+        .skel-line.w80{width:80%;}
+        .skel-line.w100{width:100%;}
+        .skel-line.w40{width:40%;}
+        .skel-line.h18{height:18px;}
+
+        /* Bottom Navigation */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--bg-card);border-top:1px solid var(--border-light);z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);}
+        .nav-inner{max-width:600px;margin:0 auto;display:flex;height:100%;align-items:stretch;}
+        .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:500;color:var(--text-muted);transition:color var(--dur) var(--ease);position:relative;padding:4px 0;}
+        .nav-tab::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;border-radius:0 0 3px 3px;background:var(--primary);transform:scaleX(0);transition:transform var(--dur) var(--ease);}
+        .nav-tab.active{color:var(--primary-dark);}
+        [data-theme="dark"] .nav-tab.active{color:var(--primary-light);}
+        .nav-tab.active::before{transform:scaleX(1);}
+        .nav-tab-icon{font-size:22px;line-height:1;}
+        .nav-tab-label{font-size:11px;}
+
+        /* Bottom Sheet */
+        .sheet-overlay{position:fixed;inset:0;background:rgba(44,36,22,0.5);z-index:2000;opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease);backdrop-filter:blur(2px);}
+        .sheet-overlay.open{opacity:1;pointer-events:auto;}
+        .bottom-sheet{position:fixed;bottom:0;left:0;right:0;max-height:90vh;background:var(--bg-card);border-radius:var(--radius-xl) var(--radius-xl) 0 0;z-index:2001;transform:translateY(100%);transition:transform 0.35s var(--ease);overflow:hidden;display:flex;flex-direction:column;}
+        .bottom-sheet.open{transform:translateY(0);}
+        .sheet-handle-wrap{padding:10px 0 6px;display:flex;justify-content:center;flex-shrink:0;cursor:grab;}
+        .sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);}
+        .sheet-header{padding:0 20px 12px;border-bottom:1px solid var(--border-light);flex-shrink:0;}
+        .sheet-source{font-size:13px;font-weight:600;color:var(--primary-dark);margin-bottom:4px;}
+        [data-theme="dark"] .sheet-source{color:var(--primary-light);}
+        .sheet-title{font-size:20px;font-weight:700;line-height:1.3;color:var(--text);}
+        .sheet-meta{font-size:12px;color:var(--text-muted);margin-top:6px;display:flex;gap:12px;}
+        .sheet-content{padding:16px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
+        .sheet-content p{font-size:15px;line-height:1.7;color:var(--text-secondary);margin-bottom:12px;}
+        .sheet-content img{border-radius:var(--radius);margin:12px 0;}
+        .sheet-actions{padding:12px 20px;border-top:1px solid var(--border-light);display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));}
+        .sheet-btn{flex:1;padding:10px;border-radius:var(--radius);font-weight:600;font-size:14px;text-align:center;transition:background var(--dur) var(--ease);}
+        .sheet-btn-primary{background:var(--primary);color:#fff;}
+        .sheet-btn-primary:hover{background:var(--primary-dark);}
+        .sheet-btn-secondary{background:var(--bg-elevated);color:var(--text-secondary);}
+        .sheet-btn-secondary:hover{background:var(--bg-hover);}
+
+        /* Toast */
+        .toast-container{position:fixed;top:calc(var(--header-h) + 12px);right:16px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+        .toast{background:var(--bg-card);color:var(--text);padding:12px 16px;border-radius:var(--radius);box-shadow:var(--shadow-lg);border-left:4px solid var(--primary);font-size:14px;pointer-events:auto;transform:translateX(120%);transition:transform 0.3s var(--ease);max-width:360px;}
+        .toast.show{transform:translateX(0);}
+        .toast.error{border-left-color:var(--highlight);}
+        .toast.success{border-left-color:var(--secondary);}
+
+        /* Empty State */
+        .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+        .empty-state .empty-icon{font-size:56px;margin-bottom:16px;}
+        .empty-state h3{font-size:18px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;}
+        .empty-state p{font-size:14px;margin-bottom:20px;max-width:320px;margin-left:auto;margin-right:auto;}
+        .btn-retry{padding:10px 24px;border-radius:var(--radius-xl);background:var(--primary);color:#fff;font-weight:600;font-size:14px;transition:background var(--dur) var(--ease);}
+        .btn-retry:hover{background:var(--primary-dark);}
+
+        /* Loading bar */
+        .loading-bar{position:fixed;top:var(--header-h);left:0;right:0;height:3px;z-index:999;overflow:hidden;opacity:0;transition:opacity 0.2s;}
+        .loading-bar.active{opacity:1;}
+        .loading-bar-inner{height:100%;background:var(--primary);width:30%;border-radius:0 2px 2px 0;animation:loadSlide 1.2s ease-in-out infinite;}
+        @keyframes loadSlide{0%{transform:translateX(-100%);}50%{transform:translateX(200%);}100%{transform:translateX(400%);}}
+
+        /* Status Info */
+        .status-line{max-width:1200px;margin:0 auto;padding:8px 16px;font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;}
+        .status-line .online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
+        .status-line .online-dot.on{background:#6B9E4A;}
+        .status-line .online-dot.off{background:var(--highlight);}
+
+        /* Responsive */
+        @media(max-width:480px){
+            .header-inner{padding:0 12px;gap:8px;}
+            .logo-text{display:none;}
+            .weather-card{padding:16px;}
+            .weather-temp{font-size:40px;}
+            .news-section,.weather-section,.categories-wrap{padding-left:12px;padding-right:12px;}
+        }
+        @media(min-width:768px){
+            :root{--header-h:60px;}
+            .bottom-sheet{max-width:600px;left:50%;transform:translate(-50%,100%);border-radius:var(--radius-xl) var(--radius-xl) 0 0;}
+            .bottom-sheet.open{transform:translate(-50%,0);}
+        }
+        @media(min-width:1280px){
+            .news-grid{grid-template-columns:repeat(3,1fr);gap:20px;}
+        }
+        @media(min-width:1920px){
+            .news-grid{grid-template-columns:repeat(4,1fr);}
+        }
+
+        /* Notification permission banner */
+        .notif-banner{max-width:1200px;margin:0 auto 8px;padding:0 16px;}
+        .notif-banner-inner{background:var(--accent);color:#fff;padding:10px 16px;border-radius:var(--radius);display:flex;align-items:center;gap:12px;font-size:13px;font-weight:500;}
+        .notif-banner-inner button{background:rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:var(--radius-xl);font-weight:600;font-size:12px;white-space:nowrap;transition:background var(--dur);}
+        .notif-banner-inner button:hover{background:rgba(255,255,255,0.35);}
+        .notif-dismiss{background:none!important;padding:4px!important;opacity:0.7;}
+        .notif-dismiss:hover{opacity:1!important;}
+
+        /* Print */
+        @media print{
+            .header,.bottom-nav,.ptr-indicator,.loading-bar,.toast-container,.notif-banner{display:none!important;}
+            body{padding:0;}
+            .news-card{break-inside:avoid;}
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" id="skip-link">Skip to main content</a>
+
+    <!-- Loading Bar -->
+    <div class="loading-bar" id="loadingBar" role="progressbar" aria-label="Loading content">
+        <div class="loading-bar-inner"></div>
+    </div>
+
+    <!-- Pull to Refresh Indicator -->
+    <div class="ptr-indicator" id="ptrIndicator" aria-hidden="true">
+        <svg class="ptr-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="appHeader" role="banner">
+        <div class="header-inner">
+            <div class="logo" aria-label="Central Valley News">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <circle cx="16" cy="16" r="15" fill="#D4A84B"/>
+                    <path d="M16 6c0 0-2 4-2 10s2 10 2 10 2-4 2-10S16 6 16 6z" fill="#fff" opacity="0.9"/>
+                    <path d="M10 10c0 0 2 3 6 6s6 2 6 2" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    <path d="M10 20c0 0 2-1 6-4s6-6 6-6" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.7"/>
+                </svg>
+                <span class="logo-text">CV News</span>
+            </div>
+            <div class="search-wrap">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="search" class="search-input" id="searchInput" placeholder="Search news..." aria-label="Search news articles" autocomplete="off">
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="refreshBtn" aria-label="Refresh news">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </button>
+                <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" id="themeIcon"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        <!-- Notification Banner (shown conditionally) -->
+        <div class="notif-banner" id="notifBanner" style="display:none;" role="alert">
+            <div class="notif-banner-inner">
+                <span>🔔 Enable notifications for breaking news alerts</span>
+                <button id="notifAllow">Enable</button>
+                <button class="notif-dismiss" id="notifDismiss" aria-label="Dismiss">✕</button>
+            </div>
+        </div>
+
+        <!-- Weather Section -->
+        <section class="weather-section" aria-label="Weather information">
+            <div class="weather-card" id="weatherCard">
+                <div class="weather-current" id="weatherCurrent">
+                    <div class="weather-icon" id="weatherIcon" aria-hidden="true">☀️</div>
+                    <div>
+                        <div class="weather-temp" id="weatherTemp">--°</div>
+                    </div>
+                    <div class="weather-info" style="margin-left:auto;text-align:right;">
+                        <h3 id="weatherLocation">Loading...</h3>
+                        <p id="weatherDesc">Fetching weather data</p>
+                    </div>
+                </div>
+                <div class="weather-forecast" id="weatherForecast" role="list" aria-label="5-day forecast"></div>
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="categories-wrap" aria-label="News categories">
+            <div class="categories" id="categoryPills" role="tablist"></div>
+        </section>
+
+        <!-- Source Info Bar -->
+        <div class="source-bar" id="sourceBar">
+            <span id="sourceLabel">All Sources</span>
+            <span class="source-count" id="articleCount">0</span> articles
+        </div>
+
+        <!-- News Section -->
+        <section class="news-section" aria-label="News articles">
+            <div class="news-grid" id="newsGrid" role="feed" aria-busy="true"></div>
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <div class="empty-icon">📰</div>
+                <h3>No articles found</h3>
+                <p>We couldn't load any news right now. Check your connection and try again.</p>
+                <button class="btn-retry" id="retryBtn">Try Again</button>
+            </div>
+        </section>
+
+        <!-- Status Line -->
+        <div class="status-line" id="statusLine">
+            <span><span class="online-dot on" id="onlineDot"></span> <span id="statusText">Online</span></span>
+            <span id="lastUpdated"></span>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottomNav" role="tablist" aria-label="County selection">
+        <div class="nav-inner">
+            <button class="nav-tab active" data-county="fresno" role="tab" aria-selected="true" aria-label="Fresno County">
+                <span class="nav-tab-icon">🌇</span>
+                <span class="nav-tab-label">Fresno</span>
+            </button>
+            <button class="nav-tab" data-county="tulare" role="tab" aria-selected="false" aria-label="Tulare County">
+                <span class="nav-tab-icon">🌾</span>
+                <span class="nav-tab-label">Tulare</span>
+            </button>
+            <button class="nav-tab" data-county="kings" role="tab" aria-selected="false" aria-label="Kings County">
+                <span class="nav-tab-icon">👑</span>
+                <span class="nav-tab-label">Kings</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Bottom Sheet Overlay -->
+    <div class="sheet-overlay" id="sheetOverlay" aria-hidden="true"></div>
+
+    <!-- Bottom Sheet -->
+    <div class="bottom-sheet" id="bottomSheet" role="dialog" aria-modal="true" aria-label="Article details">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+            <div class="sheet-source" id="sheetSource"></div>
+            <h2 class="sheet-title" id="sheetTitle"></h2>
+            <div class="sheet-meta">
+                <span id="sheetDate"></span>
+                <span id="sheetCategory"></span>
+            </div>
+        </div>
+        <div class="sheet-content" id="sheetContent"></div>
+        <div class="sheet-actions">
+            <a class="sheet-btn sheet-btn-primary" id="sheetLink" href="#" target="_blank" rel="noopener noreferrer">Read Full Article</a>
+            <button class="sheet-btn sheet-btn-secondary" id="sheetClose">Close</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <script>
+    'use strict';
+
+    /** ================================================================
+     *  CONFIGURATION
+     *  ================================================================ */
+    const CONFIG = {
+        corsProxies: [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?url='
+        ],
+        cacheExpiry: 20 * 60 * 1000,
+        fetchTimeout: 12000,
+        maxRetries: 2,
+        debounceMs: 300,
+        counties: {
+            fresno: { name: 'Fresno County', lat: 36.7378, lon: -119.7871, city: 'Fresno' },
+            tulare: { name: 'Tulare County', lat: 36.3302, lon: -119.2921, city: 'Visalia' },
+            kings:  { name: 'Kings County',  lat: 36.3274, lon: -119.6457, city: 'Hanford' }
+        },
+        categories: [
+            { id: 'all', label: 'All', icon: '📋' },
+            { id: 'breaking', label: 'Breaking', icon: '🚨' },
+            { id: 'crime', label: 'Crime & Safety', icon: '🚔' },
+            { id: 'agriculture', label: 'Agriculture', icon: '🌾' },
+            { id: 'weather', label: 'Weather', icon: '🌤️' },
+            { id: 'community', label: 'Community', icon: '🤝' },
+            { id: 'education', label: 'Education', icon: '🎓' },
+            { id: 'business', label: 'Business', icon: '💼' },
+            { id: 'politics', label: 'Politics', icon: '🏛️' },
+            { id: 'sports', label: 'Sports', icon: '⚽' },
+            { id: 'arts', label: 'Arts & Culture', icon: '🎨' }
+        ],
+        feeds: [
+            /* FRESNO COUNTY */
+            { name: 'GV Wire', url: 'https://gvwire.com/feed/', counties: ['fresno','tulare','kings'], icon: '📰' },
+            { name: 'Fresnoland', url: 'https://fresnoland.org/feed/', counties: ['fresno'], icon: '📋' },
+            { name: 'The Collegian', url: 'https://collegian.csufresno.edu/feed/', counties: ['fresno'], icon: '🎓' },
+            { name: 'SJV Sun', url: 'https://sjvsun.com/feed/', counties: ['fresno','tulare','kings'], icon: '☀️' },
+            { name: 'Fresno State News', url: 'https://fresnostatenews.com/feed/', counties: ['fresno'], icon: '🏫' },
+            { name: 'ABC30', url: 'https://abc30.com/feed/', counties: ['fresno','tulare','kings'], icon: '📺' },
+            { name: 'KSEE24/CBS47', url: 'https://www.yourcentralvalley.com/feed/', counties: ['fresno','tulare','kings'], icon: '📺' },
+            { name: 'KMPH Fox 26', url: 'https://www.kmph.com/feed/', counties: ['fresno','tulare','kings'], icon: '📺' },
+            { name: 'Fresno Bee', url: 'https://www.fresnobee.com/news/local/?widgetName=rssfeed&widgetContentId=712', counties: ['fresno'], icon: '🐝' },
+            /* TULARE COUNTY */
+            { name: 'Valley Voice', url: 'https://ourvalleyvoice.com/feed/', counties: ['tulare'], icon: '📣' },
+            { name: 'Sun-Gazette', url: 'https://www.thesungazette.com/feed/', counties: ['tulare'], icon: '📰' },
+            { name: 'Visalia Times-Delta', url: 'https://www.visaliatimesdelta.com/arcio/rss/category/news/?query=news&sort=DatePublishedDesc', counties: ['tulare'], icon: '📰' },
+            /* KINGS COUNTY */
+            { name: 'Hanford Sentinel', url: 'https://hanfordsentinel.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc', counties: ['kings'], icon: '📰' }
+        ]
+    };
+
+    /** ================================================================
+     *  UTILITY FUNCTIONS
+     *  ================================================================ */
+
+    /**
+     * Debounce a function call
+     * @param {Function} fn - Function to debounce
+     * @param {number} ms - Delay in milliseconds
+     * @returns {Function} Debounced function
+     */
+    const debounce = (fn, ms) => {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), ms);
+        };
+    };
+
+    /**
+     * Format a date to relative time string
+     * @param {Date} date - Date to format
+     * @returns {string} Relative time string
+     */
+    const timeAgo = (date) => {
+        const now = Date.now();
+        const diff = now - date.getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return `${mins}m ago`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `${hrs}h ago`;
+        const days = Math.floor(hrs / 24);
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    /**
+     * Strip HTML tags from a string
+     * @param {string} html - HTML string
+     * @returns {string} Plain text
+     */
+    const stripHtml = (html) => {
+        if (!html) return '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent?.trim() || '';
+    };
+
+    /**
+     * Extract first image URL from HTML string
+     * @param {string} html - HTML content
+     * @returns {string|null} Image URL or null
+     */
+    const extractImage = (html) => {
+        if (!html) return null;
+        const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+        return match?.[1] || null;
+    };
+
+    /**
+     * Normalize a string for comparison (deduplication)
+     * @param {string} str - Input string
+     * @returns {string} Normalized string
+     */
+    const normalizeStr = (str) =>
+        (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+
+    /**
+     * Generate a simple hash from string for dedup keying
+     * @param {string} str - Input string
+     * @returns {string} Hash string
+     */
+    const simpleHash = (str) => {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+        }
+        return h.toString(36);
+    };
+
+    /**
+     * Sanitize text for safe HTML insertion
+     * @param {string} text - Text to sanitize
+     * @returns {string} Sanitized text
+     */
+    const sanitize = (text) => {
+        const el = document.createElement('span');
+        el.textContent = text;
+        return el.innerHTML;
+    };
+
+    /**
+     * Map weather code from Open-Meteo to emoji and description
+     * @param {number} code - WMO weather code
+     * @returns {{ icon: string, desc: string }}
+     */
+    const weatherCodeMap = (code) => {
+        const map = {
+            0: { icon: '☀️', desc: 'Clear sky' },
+            1: { icon: '🌤️', desc: 'Mainly clear' },
+            2: { icon: '⛅', desc: 'Partly cloudy' },
+            3: { icon: '☁️', desc: 'Overcast' },
+            45: { icon: '🌫️', desc: 'Fog' },
+            48: { icon: '🌫️', desc: 'Depositing rime fog' },
+            51: { icon: '🌦️', desc: 'Light drizzle' },
+            53: { icon: '🌦️', desc: 'Moderate drizzle' },
+            55: { icon: '🌧️', desc: 'Dense drizzle' },
+            56: { icon: '🌧️', desc: 'Freezing drizzle' },
+            57: { icon: '🌧️', desc: 'Heavy freezing drizzle' },
+            61: { icon: '🌧️', desc: 'Slight rain' },
+            63: { icon: '🌧️', desc: 'Moderate rain' },
+            65: { icon: '🌧️', desc: 'Heavy rain' },
+            66: { icon: '🌧️', desc: 'Freezing rain' },
+            67: { icon: '🌧️', desc: 'Heavy freezing rain' },
+            71: { icon: '❄️', desc: 'Slight snow' },
+            73: { icon: '❄️', desc: 'Moderate snow' },
+            75: { icon: '❄️', desc: 'Heavy snow' },
+            77: { icon: '❄️', desc: 'Snow grains' },
+            80: { icon: '🌦️', desc: 'Rain showers' },
+            81: { icon: '🌧️', desc: 'Moderate showers' },
+            82: { icon: '🌧️', desc: 'Violent showers' },
+            85: { icon: '🌨️', desc: 'Snow showers' },
+            86: { icon: '🌨️', desc: 'Heavy snow showers' },
+            95: { icon: '⛈️', desc: 'Thunderstorm' },
+            96: { icon: '⛈️', desc: 'Thunderstorm w/ hail' },
+            99: { icon: '⛈️', desc: 'Severe thunderstorm' }
+        };
+        return map[code] || { icon: '🌡️', desc: 'Unknown' };
+    };
+
+    /**
+     * Classify an article into a news category based on keywords
+     * @param {string} title - Article title
+     * @param {string} desc - Article description
+     * @param {Array<string>} feedCategories - Categories from feed
+     * @returns {string} Category ID
+     */
+    const classifyArticle = (title, desc, feedCategories = []) => {
+        const text = `${title} ${desc} ${feedCategories.join(' ')}`.toLowerCase();
+        const rules = [
+            { id: 'breaking', kw: ['breaking','urgent','alert','emergency','just in','developing'] },
+            { id: 'crime', kw: ['crime','police','arrest','shooting','murder','theft','assault','sheriff','suspect','homicide','robbery','stabbing','crash','collision','fatal','investigation','deputy','officer','jail','inmate','convicted','sentence'] },
+            { id: 'agriculture', kw: ['farm','agriculture','crop','harvest','dairy','cattle','almond','grape','citrus','irrigation','water district','drought','usda','pistachio','cotton','orchard','vineyard','grower','pesticide','ag '] },
+            { id: 'weather', kw: ['weather','storm','rain','heat','temperature','flood','wildfire','wind','fog','snow','sierra','forecast','heat wave','fire weather'] },
+            { id: 'education', kw: ['school','student','university','college','teacher','education','campus','graduate','district','tusd','fusd','fresno state','cos ','fresno unified','visalia unified'] },
+            { id: 'sports', kw: ['game','score','player','coach','football','basketball','baseball','soccer','win ','loss ','playoff','championship','grizzlies','bulldogs','giants','lakers','nfl','nba','mlb','athlete','tournament'] },
+            { id: 'politics', kw: ['council','mayor','vote','election','legislation','governor','political','policy','board of supervisors','congressman','senator','ballot','campaign','democrat','republican','assembly','ordinance','budget'] },
+            { id: 'business', kw: ['business','economy','company','store','restaurant','development','job','hire','layoff','retail','startup','market','housing','real estate','construction','downtown','economic'] },
+            { id: 'community', kw: ['community','volunteer','event','festival','parade','donation','nonprofit','church','celebration','memorial','gathering','fundraiser','library','park','neighborhood'] },
+            { id: 'arts', kw: ['art','music','theater','museum','culture','film','concert','gallery','exhibit','artist','performance','mural','creative','festival','heritage'] }
+        ];
+        for (const rule of rules) {
+            if (rule.kw.some(k => text.includes(k))) return rule.id;
+        }
+        return 'community';
+    };
+
+    /** ================================================================
+     *  IN-MEMORY CACHE (fallback for IndexedDB)
+     *  ================================================================ */
+    const memoryCache = new Map();
+
+    /** ================================================================
+     *  INDEXEDDB WRAPPER
+     *  ================================================================ */
+    class NewsDB {
+        constructor() {
+            this.dbName = 'CVNewsDB';
+            this.dbVersion = 1;
+            this.db = null;
+            this.ready = this._init();
+        }
+
+        /** Initialize the database */
+        async _init() {
+            try {
+                return await new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.dbName, this.dbVersion);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('articles')) {
+                            const store = db.createObjectStore('articles', { keyPath: 'id' });
+                            store.createIndex('county', 'county', { unique: false });
+                            store.createIndex('category', 'category', { unique: false });
+                            store.createIndex('timestamp', 'timestamp', { unique: false });
+                        }
+                        if (!db.objectStoreNames.contains('meta')) {
+                            db.createObjectStore('meta', { keyPath: 'key' });
+                        }
+                    };
+                    req.onsuccess = (e) => {
+                        this.db = e.target.result;
+                        resolve(true);
+                    };
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (err) {
+                console.warn('IndexedDB unavailable, using memory cache:', err.message);
+                return false;
+            }
+        }
+
+        /**
+         * Store articles in the database
+         * @param {Array} articles - Array of article objects
+         */
+        async saveArticles(articles) {
+            try {
+                await this.ready;
+                if (!this.db) {
+                    articles.forEach(a => memoryCache.set(a.id, a));
+                    return;
+                }
+                const tx = this.db.transaction('articles', 'readwrite');
+                const store = tx.objectStore('articles');
+                for (const article of articles) {
+                    store.put(article);
+                }
+                await new Promise((resolve, reject) => {
+                    tx.oncomplete = resolve;
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch (err) {
+                console.warn('DB save failed:', err.message);
+                articles.forEach(a => memoryCache.set(a.id, a));
+            }
+        }
+
+        /**
+         * Get articles by county from database
+         * @param {string} county - County ID
+         * @returns {Promise<Array>} Articles array
+         */
+        async getArticles(county) {
+            try {
+                await this.ready;
+                if (!this.db) {
+                    return [...memoryCache.values()].filter(a =>
+                        a.counties?.includes(county)
+                    );
+                }
+                return await new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('articles', 'readonly');
+                    const store = tx.objectStore('articles');
+                    const req = store.getAll();
+                    req.onsuccess = () => {
+                        const articles = req.result.filter(a =>
+                            a.counties?.includes(county)
+                        );
+                        resolve(articles);
+                    };
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (err) {
+                console.warn('DB read failed:', err.message);
+                return [...memoryCache.values()].filter(a =>
+                    a.counties?.includes(county)
+                );
+            }
+        }
+
+        /**
+         * Save metadata (like last update time)
+         * @param {string} key
+         * @param {*} value
+         */
+        async saveMeta(key, value) {
+            try {
+                await this.ready;
+                if (!this.db) {
+                    memoryCache.set(`meta_${key}`, value);
+                    return;
+                }
+                const tx = this.db.transaction('meta', 'readwrite');
+                tx.objectStore('meta').put({ key, value });
+            } catch {
+                memoryCache.set(`meta_${key}`, value);
+            }
+        }
+
+        /**
+         * Get metadata value
+         * @param {string} key
+         * @returns {Promise<*>}
+         */
+        async getMeta(key) {
+            try {
+                await this.ready;
+                if (!this.db) return memoryCache.get(`meta_${key}`);
+                return await new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('meta', 'readonly');
+                    const req = tx.objectStore('meta').get(key);
+                    req.onsuccess = () => resolve(req.result?.value);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch {
+                return memoryCache.get(`meta_${key}`);
+            }
+        }
+    }
+
+    /** ================================================================
+     *  RSS FEED PARSER
+     *  ================================================================ */
+    class FeedParser {
+        /**
+         * Parse RSS or Atom XML into article objects
+         * @param {string} xml - XML string
+         * @param {Object} feedConfig - Feed configuration
+         * @returns {Array} Parsed articles
+         */
+        static parse(xml, feedConfig) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xml, 'text/xml');
+                const parseError = doc.querySelector('parsererror');
+                if (parseError) {
+                    console.warn(`Parse error for ${feedConfig.name}:`, parseError.textContent?.substring(0, 100));
+                    return [];
+                }
+                const items = doc.querySelectorAll('item');
+                if (items.length > 0) return FeedParser._parseRSS(items, feedConfig);
+                const entries = doc.querySelectorAll('entry');
+                if (entries.length > 0) return FeedParser._parseAtom(entries, feedConfig);
+                return [];
+            } catch (err) {
+                console.warn(`Parse failed for ${feedConfig.name}:`, err.message);
+                return [];
+            }
+        }
+
+        /**
+         * Parse RSS 2.0 items
+         * @param {NodeList} items
+         * @param {Object} feedConfig
+         * @returns {Array}
+         */
+        static _parseRSS(items, feedConfig) {
+            const articles = [];
+            items.forEach(item => {
+                try {
+                    const title = item.querySelector('title')?.textContent?.trim();
+                    if (!title) return;
+
+                    const link = item.querySelector('link')?.textContent?.trim() || '';
+                    const desc = item.querySelector('description')?.textContent?.trim() || '';
+                    const contentEncoded = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')?.[0]?.textContent || '';
+                    const pubDate = item.querySelector('pubDate')?.textContent?.trim();
+                    const categories = [...item.querySelectorAll('category')].map(c => c.textContent?.trim()).filter(Boolean);
+
+                    let image = null;
+                    const mediaContent = item.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'content')?.[0];
+                    if (mediaContent) {
+                        image = mediaContent.getAttribute('url');
+                    }
+                    const enclosure = item.querySelector('enclosure[type^="image"]');
+                    if (!image && enclosure) {
+                        image = enclosure.getAttribute('url');
+                    }
+                    if (!image) {
+                        image = extractImage(contentEncoded) || extractImage(desc);
+                    }
+
+                    const mediaThumbnail = item.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'thumbnail')?.[0];
+                    if (!image && mediaThumbnail) {
+                        image = mediaThumbnail.getAttribute('url');
+                    }
+
+                    const plainDesc = stripHtml(desc);
+                    const fullContent = stripHtml(contentEncoded) || plainDesc;
+                    const timestamp = pubDate ? new Date(pubDate).getTime() : Date.now();
+                    const category = classifyArticle(title, plainDesc, categories);
+                    const id = simpleHash(normalizeStr(title));
+
+                    articles.push({
+                        id,
+                        title: sanitize(title),
+                        link,
+                        description: plainDesc.substring(0, 300),
+                        content: fullContent.substring(0, 2000),
+                        image,
+                        timestamp,
+                        source: feedConfig.name,
+                        sourceIcon: feedConfig.icon,
+                        counties: feedConfig.counties,
+                        category,
+                        feedCategories: categories
+                    });
+                } catch (e) {
+                    /* skip malformed items */
+                }
+            });
+            return articles;
+        }
+
+        /**
+         * Parse Atom feed entries
+         * @param {NodeList} entries
+         * @param {Object} feedConfig
+         * @returns {Array}
+         */
+        static _parseAtom(entries, feedConfig) {
+            const articles = [];
+            entries.forEach(entry => {
+                try {
+                    const title = entry.querySelector('title')?.textContent?.trim();
+                    if (!title) return;
+
+                    const linkEl = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
+                    const link = linkEl?.getAttribute('href') || '';
+                    const summary = entry.querySelector('summary')?.textContent?.trim() || '';
+                    const content = entry.querySelector('content')?.textContent?.trim() || '';
+                    const published = entry.querySelector('published')?.textContent || entry.querySelector('updated')?.textContent;
+                    const categories = [...entry.querySelectorAll('category')].map(c => c.getAttribute('term')).filter(Boolean);
+
+                    let image = extractImage(content) || extractImage(summary);
+                    const mediaContent = entry.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'content')?.[0];
+                    if (!image && mediaContent) image = mediaContent.getAttribute('url');
+
+                    const plainDesc = stripHtml(summary || content);
+                    const fullContent = stripHtml(content) || plainDesc;
+                    const timestamp = published ? new Date(published).getTime() : Date.now();
+                    const category = classifyArticle(title, plainDesc, categories);
+                    const id = simpleHash(normalizeStr(title));
+
+                    articles.push({
+                        id,
+                        title: sanitize(title),
+                        link,
+                        description: plainDesc.substring(0, 300),
+                        content: fullContent.substring(0, 2000),
+                        image,
+                        timestamp,
+                        source: feedConfig.name,
+                        sourceIcon: feedConfig.icon,
+                        counties: feedConfig.counties,
+                        category,
+                        feedCategories: categories
+                    });
+                } catch (e) {
+                    /* skip malformed entries */
+                }
+            });
+            return articles;
+        }
+    }
+
+    /** ================================================================
+     *  NEWS AGGREGATOR
+     *  ================================================================ */
+    class NewsAggregator {
+        /**
+         * @param {NewsDB} db
+         */
+        constructor(db) {
+            this.db = db;
+            this.articles = [];
+            this.proxyIndex = 0;
+            this.feedStatus = new Map();
+        }
+
+        /**
+         * Fetch a URL with CORS proxy and timeout
+         * @param {string} url
+         * @param {number} retries
+         * @returns {Promise<string>} Response text
+         */
+        async _fetchWithProxy(url, retries = CONFIG.maxRetries) {
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                for (let pi = 0; pi < CONFIG.corsProxies.length; pi++) {
+                    const proxyBase = CONFIG.corsProxies[(this.proxyIndex + pi) % CONFIG.corsProxies.length];
+                    const proxyUrl = proxyBase + encodeURIComponent(url);
+                    try {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), CONFIG.fetchTimeout);
+                        const resp = await fetch(proxyUrl, {
+                            signal: controller.signal,
+                            headers: { 'Accept': 'application/rss+xml, application/xml, text/xml, */*' }
+                        });
+                        clearTimeout(timer);
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const text = await resp.text();
+                        if (!text || text.length < 50) throw new Error('Empty response');
+                        this.proxyIndex = (this.proxyIndex + pi) % CONFIG.corsProxies.length;
+                        return text;
+                    } catch (err) {
+                        if (attempt === retries && pi === CONFIG.corsProxies.length - 1) {
+                            throw err;
+                        }
+                    }
+                }
+                if (attempt < retries) {
+                    await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+                }
+            }
+            throw new Error('All fetch attempts failed');
+        }
+
+        /**
+         * Fetch and parse a single feed
+         * @param {Object} feedConfig
+         * @returns {Promise<Array>}
+         */
+        async _fetchFeed(feedConfig) {
+            try {
+                const xml = await this._fetchWithProxy(feedConfig.url);
+                const articles = FeedParser.parse(xml, feedConfig);
+                this.feedStatus.set(feedConfig.name, { ok: true, count: articles.length });
+                return articles;
+            } catch (err) {
+                console.warn(`Feed failed: ${feedConfig.name} - ${err.message}`);
+                this.feedStatus.set(feedConfig.name, { ok: false, error: err.message });
+                return [];
+            }
+        }
+
+        /**
+         * Deduplicate articles by normalized title
+         * @param {Array} articles
+         * @returns {Array}
+         */
+        _deduplicate(articles) {
+            const seen = new Map();
+            const deduped = [];
+            for (const article of articles) {
+                const normTitle = normalizeStr(article.title);
+                const key = normTitle.substring(0, 60);
+                if (seen.has(key)) {
+                    const existing = seen.get(key);
+                    if (article.image && !existing.image) {
+                        existing.image = article.image;
+                    }
+                    if (article.content?.length > (existing.content?.length || 0)) {
+                        existing.content = article.content;
+                        existing.description = article.description;
+                    }
+                    continue;
+                }
+                seen.set(key, article);
+                deduped.push(article);
+            }
+            return deduped;
+        }
+
+        /**
+         * Fetch all feeds and aggregate articles
+         * @param {Function} onProgress - Progress callback(loaded, total)
+         * @returns {Promise<Array>} All articles
+         */
+        async fetchAll(onProgress) {
+            const feeds = CONFIG.feeds;
+            let loaded = 0;
+            const results = await Promise.allSettled(
+                feeds.map(async (feedCfg) => {
+                    const articles = await this._fetchFeed(feedCfg);
+                    loaded++;
+                    onProgress?.(loaded, feeds.length);
+                    return articles;
+                })
+            );
+            let allArticles = [];
+            for (const result of results) {
+                if (result.status === 'fulfilled' && result.value.length > 0) {
+                    allArticles.push(...result.value);
+                }
+            }
+            allArticles.sort((a, b) => b.timestamp - a.timestamp);
+            allArticles = this._deduplicate(allArticles);
+            const validArticles = allArticles.filter(a => {
+                if (!a.title || a.title.length < 5) return false;
+                if (isNaN(a.timestamp) || a.timestamp < Date.now() - 365 * 24 * 60 * 60 * 1000) return false;
+                return true;
+            });
+            this.articles = validArticles;
+            await this.db.saveArticles(validArticles);
+            await this.db.saveMeta('lastFetch', Date.now());
+            return validArticles;
+        }
+
+        /**
+         * Get articles filtered by county
+         * @param {string} county
+         * @returns {Array}
+         */
+        getByCounty(county) {
+            return this.articles.filter(a => a.counties?.includes(county));
+        }
+
+        /**
+         * Get articles from cache (offline)
+         * @param {string} county
+         * @returns {Promise<Array>}
+         */
+        async getCached(county) {
+            const cached = await this.db.getArticles(county);
+            return cached.sort((a, b) => b.timestamp - a.timestamp);
+        }
+
+        /**
+         * Get feed status report
+         * @returns {Object}
+         */
+        getStatus() {
+            let ok = 0, fail = 0;
+            this.feedStatus.forEach(v => v.ok ? ok++ : fail++);
+            return { ok, fail, total: CONFIG.feeds.length, details: this.feedStatus };
+        }
+    }
+
+    /** ================================================================
+     *  WEATHER SERVICE
+     *  ================================================================ */
+    class WeatherService {
+        /**
+         * Fetch weather for a county
+         * @param {string} county - County ID
+         * @returns {Promise<Object>} Weather data
+         */
+        static async fetch(county) {
+            const { lat, lon, city } = CONFIG.counties[county];
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&temperature_unit=fahrenheit&timezone=America/Los_Angeles&forecast_days=5`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`Weather API ${resp.status}`);
+            const data = await resp.json();
+            return { ...data, city };
+        }
+    }
+
+    /** ================================================================
+     *  UI CONTROLLER
+     *  ================================================================ */
+    class UIController {
+        constructor() {
+            this.els = {
+                newsGrid: document.getElementById('newsGrid'),
+                emptyState: document.getElementById('emptyState'),
+                loadingBar: document.getElementById('loadingBar'),
+                categoryPills: document.getElementById('categoryPills'),
+                searchInput: document.getElementById('searchInput'),
+                weatherCard: document.getElementById('weatherCard'),
+                weatherCurrent: document.getElementById('weatherCurrent'),
+                weatherIcon: document.getElementById('weatherIcon'),
+                weatherTemp: document.getElementById('weatherTemp'),
+                weatherLocation: document.getElementById('weatherLocation'),
+                weatherDesc: document.getElementById('weatherDesc'),
+                weatherForecast: document.getElementById('weatherForecast'),
+                sheetOverlay: document.getElementById('sheetOverlay'),
+                bottomSheet: document.getElementById('bottomSheet'),
+                sheetSource: document.getElementById('sheetSource'),
+                sheetTitle: document.getElementById('sheetTitle'),
+                sheetDate: document.getElementById('sheetDate'),
+                sheetCategory: document.getElementById('sheetCategory'),
+                sheetContent: document.getElementById('sheetContent'),
+                sheetLink: document.getElementById('sheetLink'),
+                sheetClose: document.getElementById('sheetClose'),
+                sourceLabel: document.getElementById('sourceLabel'),
+                articleCount: document.getElementById('articleCount'),
+                statusText: document.getElementById('statusText'),
+                onlineDot: document.getElementById('onlineDot'),
+                lastUpdated: document.getElementById('lastUpdated'),
+                toastContainer: document.getElementById('toastContainer'),
+                themeToggle: document.getElementById('themeToggle'),
+                themeIcon: document.getElementById('themeIcon'),
+                refreshBtn: document.getElementById('refreshBtn'),
+                retryBtn: document.getElementById('retryBtn'),
+                ptrIndicator: document.getElementById('ptrIndicator'),
+                notifBanner: document.getElementById('notifBanner'),
+                notifAllow: document.getElementById('notifAllow'),
+                notifDismiss: document.getElementById('notifDismiss'),
+                appHeader: document.getElementById('appHeader')
+            };
+        }
+
+        /** Show loading bar */
+        showLoading() {
+            this.els.loadingBar.classList.add('active');
+            this.els.newsGrid.setAttribute('aria-busy', 'true');
+        }
+
+        /** Hide loading bar */
+        hideLoading() {
+            this.els.loadingBar.classList.remove('active');
+            this.els.newsGrid.setAttribute('aria-busy', 'false');
+        }
+
+        /**
+         * Display a toast notification
+         * @param {string} message
+         * @param {'info'|'error'|'success'} type
+         * @param {number} duration - ms
+         */
+        toast(message, type = 'info', duration = 4000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toast.setAttribute('role', 'alert');
+            this.els.toastContainer.appendChild(toast);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => toast.classList.add('show'));
+            });
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 350);
+            }, duration);
+        }
+
+        /** Render skeleton loading cards */
+        showSkeletons(count = 6) {
+            this.els.newsGrid.innerHTML = '';
+            this.els.emptyState.style.display = 'none';
+            for (let i = 0; i < count; i++) {
+                const skel = document.createElement('div');
+                skel.className = 'skel-card';
+                skel.setAttribute('aria-hidden', 'true');
+                skel.innerHTML = `
+                    <div class="skel-img"></div>
+                    <div class="skel-body">
+                        <div class="skeleton skel-line w60"></div>
+                        <div class="skeleton skel-line w100 h18"></div>
+                        <div class="skeleton skel-line w80 h18"></div>
+                        <div class="skeleton skel-line w100"></div>
+                        <div class="skeleton skel-line w40"></div>
+                    </div>`;
+                this.els.newsGrid.appendChild(skel);
+            }
+        }
+
+        /**
+         * Render category filter pills
+         * @param {Array} articles - Current articles for counting
+         * @param {string} activeCategory - Currently active category
+         * @param {Function} onSelect - Callback when category is selected
+         */
+        renderCategories(articles, activeCategory, onSelect) {
+            this.els.categoryPills.innerHTML = '';
+            CONFIG.categories.forEach(cat => {
+                const count = cat.id === 'all' ? articles.length : articles.filter(a => a.category === cat.id).length;
+                const pill = document.createElement('button');
+                pill.className = `cat-pill${cat.id === activeCategory ? ' active' : ''}`;
+                pill.setAttribute('role', 'tab');
+                pill.setAttribute('aria-selected', cat.id === activeCategory ? 'true' : 'false');
+                pill.innerHTML = `${cat.icon} ${cat.label}<span class="pill-count">${count}</span>`;
+                pill.addEventListener('click', () => onSelect(cat.id));
+                this.els.categoryPills.appendChild(pill);
+            });
+        }
+
+        /**
+         * Render the news grid
+         * @param {Array} articles
+         * @param {Function} onCardClick - Callback when a card is clicked
+         */
+        renderArticles(articles, onCardClick) {
+            this.els.newsGrid.innerHTML = '';
+
+            if (articles.length === 0) {
+                this.els.emptyState.style.display = 'block';
+                return;
+            }
+            this.els.emptyState.style.display = 'none';
+
+            const fragment = document.createDocumentFragment();
+            articles.forEach((article, idx) => {
+                const card = document.createElement('article');
+                card.className = 'news-card';
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'article');
+                card.setAttribute('aria-label', article.title);
+
+                const catClass = `cat-${article.category}`;
+                const catLabel = CONFIG.categories.find(c => c.id === article.category)?.label || article.category;
+
+                const imageHtml = article.image
+                    ? `<div class="card-img-wrap"><img class="card-img" src="${sanitize(article.image)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'card-img-placeholder\\'>📰</div>'"></div>`
+                    : `<div class="card-img-wrap"><div class="card-img-placeholder">${article.sourceIcon || '📰'}</div></div>`;
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <span class="card-source"><span class="card-source-icon">${article.sourceIcon || '📰'}</span> ${sanitize(article.source)}</span>
+                            <span class="card-time">${timeAgo(new Date(article.timestamp))}</span>
+                        </div>
+                        <span class="card-category ${catClass}">${catLabel}</span>
+                        <h3 class="card-title">${article.title}</h3>
+                        <p class="card-desc">${sanitize(article.description || '')}</p>
+                        <div class="card-footer">
+                            <span>${new Date(article.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <span class="card-read-btn">Read more →</span>
+                        </div>
+                    </div>`;
+
+                const openArticle = () => onCardClick(article);
+                card.addEventListener('click', openArticle);
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openArticle();
+                    }
+                });
+                fragment.appendChild(card);
+            });
+            this.els.newsGrid.appendChild(fragment);
+        }
+
+        /**
+         * Open the bottom sheet with an article
+         * @param {Object} article
+         */
+        openSheet(article) {
+            this.els.sheetSource.textContent = `${article.sourceIcon || '📰'} ${article.source}`;
+            this.els.sheetTitle.textContent = article.title;
+            this.els.sheetDate.textContent = new Date(article.timestamp).toLocaleString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+            });
+            const catLabel = CONFIG.categories.find(c => c.id === article.category)?.label || '';
+            this.els.sheetCategory.textContent = catLabel;
+
+            let contentHtml = '';
+            if (article.image) {
+                contentHtml += `<img src="${sanitize(article.image)}" alt="" style="width:100%;border-radius:10px;margin-bottom:16px;" loading="lazy" onerror="this.style.display='none'">`;
+            }
+            const paragraphs = (article.content || article.description || 'No content available.').split(/\n+/).filter(Boolean);
+            contentHtml += paragraphs.map(p => `<p>${sanitize(p)}</p>`).join('');
+            this.els.sheetContent.innerHTML = contentHtml;
+            this.els.sheetLink.href = article.link || '#';
+
+            this.els.sheetOverlay.classList.add('open');
+            this.els.bottomSheet.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            this.els.bottomSheet.focus();
+        }
+
+        /** Close the bottom sheet */
+        closeSheet() {
+            this.els.sheetOverlay.classList.remove('open');
+            this.els.bottomSheet.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Render weather data
+         * @param {Object} data - Open-Meteo response
+         */
+        renderWeather(data) {
+            const { current_weather, daily, city } = data;
+            const wx = weatherCodeMap(current_weather.weathercode);
+
+            this.els.weatherIcon.textContent = wx.icon;
+            this.els.weatherTemp.textContent = `${Math.round(current_weather.temperature)}°F`;
+            this.els.weatherLocation.textContent = city;
+            this.els.weatherDesc.textContent = `${wx.desc} · Wind ${Math.round(current_weather.windspeed)} mph`;
+
+            this.els.weatherForecast.innerHTML = '';
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (let i = 0; i < Math.min(5, daily.time.length); i++) {
+                const d = new Date(daily.time[i] + 'T12:00:00');
+                const dayName = i === 0 ? 'Today' : dayNames[d.getDay()];
+                const dWx = weatherCodeMap(daily.weathercode[i]);
+                const hi = Math.round(daily.temperature_2m_max[i]);
+                const lo = Math.round(daily.temperature_2m_min[i]);
+                const dayEl = document.createElement('div');
+                dayEl.className = 'forecast-day';
+                dayEl.setAttribute('role', 'listitem');
+                dayEl.innerHTML = `
+                    <div class="day-name">${dayName}</div>
+                    <div class="day-icon">${dWx.icon}</div>
+                    <div class="day-temps"><span class="hi">${hi}°</span><span class="lo">${lo}°</span></div>`;
+                this.els.weatherForecast.appendChild(dayEl);
+            }
+        }
+
+        /**
+         * Update the article count and source label
+         * @param {number} count
+         * @param {string} countyName
+         */
+        updateSourceBar(count, countyName) {
+            this.els.articleCount.textContent = count;
+            this.els.sourceLabel.textContent = countyName;
+        }
+
+        /**
+         * Update online status display
+         * @param {boolean} online
+         */
+        updateOnlineStatus(online) {
+            this.els.onlineDot.className = `online-dot ${online ? 'on' : 'off'}`;
+            this.els.statusText.textContent = online ? 'Online' : 'Offline';
+        }
+
+        /**
+         * Update last updated timestamp
+         * @param {Date} date
+         */
+        updateLastFetched(date) {
+            this.els.lastUpdated.textContent = `Updated ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+        }
+    }
+
+    /** ================================================================
+     *  MAIN APPLICATION
+     *  ================================================================ */
+    class App {
+        constructor() {
+            this.db = new NewsDB();
+            this.aggregator = new NewsAggregator(this.db);
+            this.ui = new UIController();
+            this.currentCounty = 'fresno';
+            this.currentCategory = 'all';
+            this.searchQuery = '';
+            this.allArticles = [];
+            this.isLoading = false;
+            this.touchStartY = 0;
+            this.isPulling = false;
+        }
+
+        /** Initialize the application */
+        async init() {
+            this._initTheme();
+            this._bindEvents();
+            this._initNavTabs();
+            this._initPullToRefresh();
+            this._initScrollHeader();
+            this._initNotifications();
+            this._initOnlineStatus();
+            this._registerSW();
+
+            this.ui.showSkeletons();
+            this.ui.showLoading();
+
+            /* Load cached articles first for instant display */
+            const cached = await this.aggregator.getCached(this.currentCounty);
+            if (cached.length > 0) {
+                this.allArticles = cached;
+                this._renderCurrentView();
+                this.ui.toast('Showing cached articles...', 'info', 2000);
+            }
+
+            /* Fetch fresh data */
+            await this._fetchNews();
+
+            /* Fetch weather */
+            this._fetchWeather();
+        }
+
+        /** Fetch fresh news from all feeds */
+        async _fetchNews() {
+            if (this.isLoading) return;
+            this.isLoading = true;
+            this.ui.showLoading();
+
+            try {
+                const articles = await this.aggregator.fetchAll((loaded, total) => {
+                    /* progress callback */
+                });
+                this.allArticles = articles;
+                this._renderCurrentView();
+
+                const status = this.aggregator.getStatus();
+                if (status.ok > 0) {
+                    this.ui.toast(`Loaded ${this.allArticles.length} articles from ${status.ok} sources`, 'success', 3000);
+                } else {
+                    this.ui.toast('Could not reach any news sources', 'error', 5000);
+                }
+                this.ui.updateLastFetched(new Date());
+            } catch (err) {
+                console.error('Fetch news error:', err);
+                this.ui.toast('Failed to load news. Showing cached data.', 'error');
+                const cached = await this.aggregator.getCached(this.currentCounty);
+                if (cached.length > 0) {
+                    this.allArticles = cached;
+                    this._renderCurrentView();
+                }
+            } finally {
+                this.isLoading = false;
+                this.ui.hideLoading();
+            }
+        }
+
+        /** Fetch weather for current county */
+        async _fetchWeather() {
+            try {
+                const data = await WeatherService.fetch(this.currentCounty);
+                this.ui.renderWeather(data);
+            } catch (err) {
+                console.warn('Weather fetch failed:', err.message);
+                this.ui.els.weatherDesc.textContent = 'Weather unavailable';
+            }
+        }
+
+        /** Get the currently filtered articles */
+        _getFilteredArticles() {
+            let articles = this.allArticles.filter(a => a.counties?.includes(this.currentCounty));
+
+            if (this.currentCategory !== 'all') {
+                articles = articles.filter(a => a.category === this.currentCategory);
+            }
+
+            if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase();
+                articles = articles.filter(a =>
+                    a.title?.toLowerCase().includes(q) ||
+                    a.description?.toLowerCase().includes(q) ||
+                    a.source?.toLowerCase().includes(q)
+                );
+            }
+
+            return articles;
+        }
+
+        /** Render the current view based on filters */
+        _renderCurrentView() {
+            const filtered = this._getFilteredArticles();
+            const countyArticles = this.allArticles.filter(a => a.counties?.includes(this.currentCounty));
+            this.ui.renderCategories(countyArticles, this.currentCategory, (catId) => {
+                this.currentCategory = catId;
+                this._renderCurrentView();
+            });
+            this.ui.renderArticles(filtered, (article) => this.ui.openSheet(article));
+            this.ui.updateSourceBar(filtered.length, CONFIG.counties[this.currentCounty].name);
+        }
+
+        /** Bind all event handlers */
+        _bindEvents() {
+            /* Search */
+            this.ui.els.searchInput.addEventListener('input', debounce((e) => {
+                this.searchQuery = e.target.value.trim();
+                this._renderCurrentView();
+            }, CONFIG.debounceMs));
+
+            /* Refresh */
+            this.ui.els.refreshBtn.addEventListener('click', () => this._fetchNews());
+            this.ui.els.retryBtn.addEventListener('click', () => this._fetchNews());
+
+            /* Sheet close */
+            this.ui.els.sheetClose.addEventListener('click', () => this.ui.closeSheet());
+            this.ui.els.sheetOverlay.addEventListener('click', () => this.ui.closeSheet());
+
+            /* Keyboard: Escape closes sheet */
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') this.ui.closeSheet();
+            });
+
+            /* Theme toggle */
+            this.ui.els.themeToggle.addEventListener('click', () => this._toggleTheme());
+        }
+
+        /** Initialize bottom navigation tabs */
+        _initNavTabs() {
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    });
+                    tab.classList.add('active');
+                    tab.setAttribute('aria-selected', 'true');
+                    this.currentCounty = tab.dataset.county;
+                    this.currentCategory = 'all';
+                    this.searchQuery = '';
+                    this.ui.els.searchInput.value = '';
+                    this._renderCurrentView();
+                    this._fetchWeather();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+        }
+
+        /** Initialize theme (dark/light) */
+        _initTheme() {
+            const stored = this._getStoredTheme();
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = stored || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            this._updateThemeIcon(theme);
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!this._getStoredTheme()) {
+                    const t = e.matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', t);
+                    this._updateThemeIcon(t);
+                }
+            });
+        }
+
+        /** Toggle between dark and light theme */
+        _toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            this._updateThemeIcon(next);
+            try { localStorage.setItem('cv-news-theme', next); } catch {}
+        }
+
+        _getStoredTheme() {
+            try { return localStorage.getItem('cv-news-theme'); } catch { return null; }
+        }
+
+        _updateThemeIcon(theme) {
+            this.ui.els.themeIcon.innerHTML = theme === 'dark'
+                ? '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
+                : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        }
+
+        /** Initialize pull-to-refresh for mobile */
+        _initPullToRefresh() {
+            let startY = 0;
+            let pulling = false;
+
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    pulling = true;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!pulling) return;
+                const diff = e.touches[0].clientY - startY;
+                if (diff > 10 && diff < 150 && window.scrollY === 0) {
+                    const progress = Math.min(diff / 100, 1);
+                    this.ui.els.ptrIndicator.classList.add('active');
+                    this.ui.els.ptrIndicator.style.transform = `translateX(-50%) translateY(${diff * 0.5 - 60}px)`;
+                    this.ui.els.ptrIndicator.style.opacity = progress;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => {
+                if (!pulling) return;
+                pulling = false;
+                const indicator = this.ui.els.ptrIndicator;
+                if (indicator.classList.contains('active')) {
+                    const currentY = parseFloat(indicator.style.transform.match(/translateY\(([^)]+)\)/)?.[1] || '0');
+                    if (currentY > -10) {
+                        indicator.classList.add('refreshing');
+                        this._fetchNews().then(() => {
+                            this._fetchWeather();
+                            indicator.classList.remove('active', 'refreshing');
+                            indicator.style.transform = '';
+                            indicator.style.opacity = '';
+                        });
+                    } else {
+                        indicator.classList.remove('active');
+                        indicator.style.transform = '';
+                        indicator.style.opacity = '';
+                    }
+                }
+            }, { passive: true });
+        }
+
+        /** Initialize header scroll behavior */
+        _initScrollHeader() {
+            let lastScroll = 0;
+            const header = this.ui.els.appHeader;
+
+            window.addEventListener('scroll', debounce(() => {
+                const current = window.scrollY;
+                if (current > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+                lastScroll = current;
+            }, 50), { passive: true });
+        }
+
+        /** Initialize notification permission */
+        _initNotifications() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'default') {
+                this.ui.els.notifBanner.style.display = 'block';
+            }
+            this.ui.els.notifAllow?.addEventListener('click', async () => {
+                try {
+                    const perm = await Notification.requestPermission();
+                    if (perm === 'granted') {
+                        this.ui.toast('Notifications enabled!', 'success');
+                    }
+                } catch {}
+                this.ui.els.notifBanner.style.display = 'none';
+            });
+            this.ui.els.notifDismiss?.addEventListener('click', () => {
+                this.ui.els.notifBanner.style.display = 'none';
+            });
+        }
+
+        /** Initialize online/offline status monitoring */
+        _initOnlineStatus() {
+            this.ui.updateOnlineStatus(navigator.onLine);
+            window.addEventListener('online', () => {
+                this.ui.updateOnlineStatus(true);
+                this.ui.toast('Back online', 'success', 2000);
+                this._fetchNews();
+            });
+            window.addEventListener('offline', () => {
+                this.ui.updateOnlineStatus(false);
+                this.ui.toast('You are offline. Showing cached articles.', 'info', 3000);
+            });
+        }
+
+        /** Attempt to register service worker */
+        _registerSW() {
+            if (!('serviceWorker' in navigator)) return;
+
+            const swCode = `
+const CACHE_NAME = 'cv-news-v1';
+const OFFLINE_URLS = ['/'];
+
+self.addEventListener('install', (e) => {
+    e.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_URLS)).then(() => self.skipWaiting())
+    );
+});
+
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) =>
+            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        ).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', (e) => {
+    if (e.request.method !== 'GET') return;
+    e.respondWith(
+        fetch(e.request).then((resp) => {
+            const clone = resp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+            return resp;
+        }).catch(() => caches.match(e.request))
+    );
+});`;
+
+            try {
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(() => {
+                    /* SW registration may fail in some environments */
+                });
+            } catch {
+                /* Service workers not available in this context */
+            }
+        }
+    }
+
+    /** ================================================================
+     *  PWA MANIFEST (dynamic)
+     *  ================================================================ */
+    (() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        /* Draw icon */
+        ctx.fillStyle = '#D4A84B';
+        ctx.beginPath();
+        ctx.arc(256, 256, 256, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 220px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CV', 256, 240);
+
+        ctx.font = 'bold 80px sans-serif';
+        ctx.fillText('NEWS', 256, 360);
+
+        const iconUrl = canvas.toDataURL('image/png');
+
+        const manifest = {
+            name: 'Central Valley News',
+            short_name: 'CV News',
+            start_url: '.',
+            display: 'standalone',
+            background_color: '#F5F1E8',
+            theme_color: '#D4A84B',
+            orientation: 'portrait-primary',
+            description: 'Local news aggregator for Fresno, Tulare, and Kings Counties',
+            icons: [
+                { src: iconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+
+        /* Apple touch icon */
+        const touchIcon = document.createElement('link');
+        touchIcon.rel = 'apple-touch-icon';
+        touchIcon.href = iconUrl;
+        document.head.appendChild(touchIcon);
+    })();
+
+    /** ================================================================
+     *  LAUNCH
+     *  ================================================================ */
+    const app = new App();
+    app.init().catch(err => console.error('App initialization failed:', err));
+    </script>
+</body>
 </html>
